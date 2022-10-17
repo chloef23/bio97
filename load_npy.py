@@ -15,33 +15,29 @@ from CPFrame import CPFrame
 # an array with the coordinates of the boundaries of each cell
 # note: this function will override any files named [file_name].png
 # inputs: file_name - the name of the .npy file
-#         print_file - boolean, defaults to false, prints the text of the .npy file if true
-#         show_plot - boolean, defaults to false, displays the matplotlib plot if true
-#                     note: if show_plot is True, the saved image will be blank
 # output: png_name - name of the file containing the PNG
 #         cell_boundaries - pandas dataframe containing a column of cell temp_ids and a column of the coordinates
 #                           of their outlines from the .npy file
 
-def load(file_name, print_file=False, show_plot=False):
+def load(file_name, png_generated=False):
     # load numpy file
     file = np.load(file_name, allow_pickle=True).item()
-    if print_file:
-        print(file)
 
     # get list of pixels containing the outlines from file
     outlines = outlines_list(file['masks'])
-    plt.imshow(file['img'])
-    for o in outlines:
-        plt.plot(o[:, 0], o[:, 1], color='r')
-    if show_plot:      # note: if show_plot is True, saved file will be blank
-        plt.show()
 
-    # save plot as PNG
     png_name = file_name + ".png"
-    plt.savefig(png_name)
 
-    # clear the figure from the plot
-    plt.clf()
+    if not png_generated:
+        plt.imshow(file['img'])
+        for o in outlines:
+            plt.plot(o[:, 0], o[:, 1], color='r')
+
+        # save plot as PNG
+        plt.savefig(png_name)
+
+        # clear the figure from the plot
+        plt.clf()
 
     # get dimensions of the image
     image_array = file['img']
@@ -53,14 +49,15 @@ def load(file_name, print_file=False, show_plot=False):
 
     # create data structure of cell temp_ids and the coordinates of the cell outlines
     cpframe = create_cpframe(outlines, size, short_fn)
-    cpframe.print_cpframe()
 
-    # return the name of the saved PNG
-    return png_name
+    # return the name of the saved PNG and the CPFrame
+    return png_name, cpframe
 
 # create an array of the cells (distinguished by cell_temp_id) and the coordinates of their outline
-# input:
-# output:
+# input: outlines - list of cell outlines coordinates from .npy file
+#        size - dimensions of frame from image.shape() function
+#        file_id - the time and z-axis height of the file in form t_XXX_z_XXX
+# output: CPFrame data structure
 def create_cpframe(outlines, size, file_id):
     cell_temp_id_list = []
 
@@ -99,4 +96,4 @@ if __name__ == "__main__":
     # .npy file
     FILE = ".npy test_1/20220428_ECadGFP_02-z1-50t10034_seg.npy"
 
-    load(FILE, print_file=False, show_plot=False)     # if show_plot is true, saved file will be blank
+    load(FILE, png_generated=False)
