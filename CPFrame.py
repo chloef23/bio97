@@ -40,7 +40,8 @@ class CPFrame:
 
     # returns the minimum and maxiumum coordinates of a theoretical box around each cell
     # output: list of list of two tuples giving the top right and bottom left coordinates of the box
-    #         for each cell in form [[(min x, max y), (max x, min y)]...]
+    #         for each cell in form [[(min x, min y), (max x, max y)]...]
+    #         note: (0, 0) is at the top left
     def get_cell_min_max(self):
         min_max_list = []
 
@@ -50,8 +51,8 @@ class CPFrame:
             max_x = max(cell, key=itemgetter(0))[0]
             min_y = min(cell, key=itemgetter(1))[1]
             max_y = max(cell, key=itemgetter(1))[1]
-            temp_list.append((min_x, max_y))
-            temp_list.append((max_x, min_y))
+            temp_list.append((min_x, min_y))
+            temp_list.append((max_x, max_y))
             min_max_list.append(temp_list)
 
         return min_max_list
@@ -100,5 +101,6 @@ if __name__ == "__main__":
     cpframe.print_cpframe(cell_temp_id=2)
 
     print("\nGet the top left and bottom right coordinates of each cell:")
+    print("Note: (0, 0) is at the top right")
     print(cpframe.get_cell_min_max())
 

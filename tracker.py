@@ -10,13 +10,13 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, speed="fast"):
 
     # set speed out output video
     if speed == "slow":
-        s = 300
+        s = 3
     elif speed == "medium":
-        s = 200
+        s = 2
     elif speed == "fast":
-        s = 100
+        s = 1
 
-    # read mp4 video found at inputted file path
+    # check that video exists and is in mp4 format
     if not os.path.exists(video_file_path):
         print("Video file could not be found.")
         exit()
@@ -24,35 +24,39 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, speed="fast"):
         print("Video file is not of type mp4.")
         exit()
 
+    # read mp4 video found at inputted file path
     video = cv2.VideoCapture(video_file_path)
     ret, frame = video.read()
 
     # initialize video display
     frame_height, frame_width = frame.shape[:2]     # resize the video for a more convenient view
-    frame = cv2.resize(frame, [frame_width // 2, frame_height // 2])
     # initialize video output
     output = cv2.VideoWriter(f'{tracker_type}.avi',     # initialize video writer to save the results
                              cv2.VideoWriter_fourcc(*'XVID'), 60.0,
-                             (frame_width // 2, frame_height // 2), True)
+                             (frame_width, frame_height), True)
     if not ret:
         print("Video cannot be read from file.")
 
     # Select the bounding box in the first frame
     multi_tracker = []    # list of all the trackers
-    for cell in range(1, 5): #init_cpframe.get_cell_min_max():
-        # print(cell[0][0], cell[0][1], cell[1][0], cell[1][1])
-        # bbox = (cell[0][0], cell[0][1], cell[1][0] - cell[0][0], cell[0][1] - cell[1][1])   # (x, y, w, h)
-        # p1 = (int(bbox[0]), int(bbox[1]))
-        # p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-        # cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
 
-        bbox = cv2.selectROI(frame, False)
-        print(bbox)
+    for cell in init_cpframe.get_cell_min_max():
+
+        # print(cell[0][0], cell[0][1], cell[1][0], cell[1][1])
+        x1 = cell[0][0]
+        y1 = cell[0][1]
+        x2 = cell[1][0]
+        y2 = cell[1][1]
+        bbox = (x1, y1, abs(x2 - x1), abs(y2 - y1))   # (x, y, w, h)
+        # print(bbox)
+
+        # Uncomment below for manual selection of cells
+        # bbox = cv2.selectROI(frame, False)
+        # print(bbox)
+
         temp_tracker = create_tracker(tracker_type)
         temp_tracker.init(frame, bbox)
         multi_tracker.append(temp_tracker)
-
-    print(multi_tracker)
 
 
     # Start tracking
@@ -61,7 +65,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, speed="fast"):
         if not ret:
             print("Video could not be read to tracker.")
             break
-        frame = cv2.resize(frame, [frame_width // 2, frame_height // 2])
 
         timer = cv2.getTickCount()
         for tracker in multi_tracker:
@@ -74,10 +77,10 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, speed="fast"):
             else:
                 cv2.putText(frame, "Tracking failure detected", (100, 80),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-        cv2.putText(frame, tracker_type + " Tracker", (100, 20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
-        cv2.putText(frame, "FPS : " + str(int(fps)), (100, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
+        # cv2.putText(frame, tracker_type + " Tracker", (100, 20),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
+        # cv2.putText(frame, "FPS : " + str(int(fps)), (100, 50),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
         cv2.imshow("Tracking", frame)
         output.write(frame)
         k = cv2.waitKey(s) & 0xff

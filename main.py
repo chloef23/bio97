@@ -13,7 +13,7 @@ import pandas as pd
 
 # user-specified inputs
 FOLDER_NAME = "long_test"     # name of the folder where .npy files are stored
-VIDEO_FPS = 1    # frames per second desired in video, cannot be less than 0.01
+VIDEO_FPS = 0.01    # frames per second desired in video, cannot be less than 0.01
 
 # algorithm used for tracker
 tracker_type = "TrackerCSRT"    # recommended algorithm
@@ -38,7 +38,7 @@ def main():
         # check to see if the png already exists, if so, don't create again
         png_name = npy + ".png"
         if os.path.exists(png_name):
-            png, cpframe = load_npy.load(npy, png_generated=True)
+            png, cpframe = load_npy.load(npy, png_generated=True)     # change to False to force-generate pngs
             print(png + " found")
 
         # create png from .npy
@@ -58,7 +58,6 @@ def main():
     video_file_path = FOLDER_NAME + "/cell_tracker_video.mp4"
     frames_to_video.write_video(video_file_path, png_list, VIDEO_FPS)
 
-    print(cpframe_list[0])
     tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0])
 
 

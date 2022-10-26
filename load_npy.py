@@ -8,6 +8,7 @@
 # import packages
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes as ax
 import cv2
 from CPFrame import CPFrame
 
@@ -18,7 +19,6 @@ from CPFrame import CPFrame
 # output: png_name - name of the file containing the PNG
 #         cell_boundaries - pandas dataframe containing a column of cell temp_ids and a column of the coordinates
 #                           of their outlines from the .npy file
-
 def load(file_name, png_generated=False):
     # load numpy file
     file = np.load(file_name, allow_pickle=True).item()
@@ -32,9 +32,11 @@ def load(file_name, png_generated=False):
         plt.imshow(file['img'])
         for o in outlines:
             plt.plot(o[:, 0], o[:, 1], color='r')
+        im_array = file['img']
 
         # save plot as PNG
-        plt.savefig(png_name)
+        plt.imsave(png_name, arr=im_array)
+        # plt.savefig(png_name)
 
         # clear the figure from the plot
         plt.clf()
