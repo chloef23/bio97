@@ -8,7 +8,6 @@
 # import packages
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes as ax
 import cv2
 from CPFrame import CPFrame
 
@@ -25,24 +24,17 @@ def load(file_name, png_generated=False):
 
     # get list of pixels containing the outlines from file
     outlines = outlines_list(file['masks'])
-
     png_name = file_name + ".png"
+    image_array = file['img']
 
     if not png_generated:
-        plt.imshow(file['img'])
-        for o in outlines:
-            plt.plot(o[:, 0], o[:, 1], color='r')
-        im_array = file['img']
-
         # save plot as PNG
-        plt.imsave(png_name, arr=im_array)
-        # plt.savefig(png_name)
+        plt.imsave(png_name, arr=image_array)
 
         # clear the figure from the plot
         plt.clf()
 
     # get dimensions of the image
-    image_array = file['img']
     max_y, max_x = image_array.shape
     size = (max_x, max_y)
 
@@ -55,24 +47,15 @@ def load(file_name, png_generated=False):
     # return the name of the saved PNG and the CPFrame
     return png_name, cpframe
 
+
 # create an array of the cells (distinguished by cell_temp_id) and the coordinates of their outline
 # input: outlines - list of cell outlines coordinates from .npy file
 #        size - dimensions of frame from image.shape() function
 #        file_id - the time and z-axis height of the file in form t_XXX_z_XXX
 # output: CPFrame data structure
 def create_cpframe(outlines, size, file_id):
-    cell_temp_id_list = []
-
-    # create list of temp_ids matching with cell outlines
-    i = 0
-    for cell in outlines:
-        cell_temp_id_list.append(i)
-        i += 1
-
-    cpframe = CPFrame(cell_temp_id_list, outlines, size, file_id)
-
-    return(cpframe)
-
+    cpframe = CPFrame(outlines, size, file_id)
+    return cpframe
 
 
 # code from Cellpose documentation, gets the outlines of cells and returns them as a list for plotting
@@ -92,6 +75,7 @@ def outlines_list(masks):
             else:
                 outpix.append(np.zeros((0,2)))
     return outpix
+
 
 # unit testing
 if __name__ == "__main__":

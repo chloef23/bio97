@@ -8,27 +8,29 @@ from operator import itemgetter
 
 class CPFrame:
 
-    # cell_temp_id - list of all the cell temp_ids
-    # outlines_list - list of the pixels contained within the outline, in the same order as the cell temp)id list
+    # outlines_list - list of the pixels contained within each cell outline
     # size - tuple of the number of (x, y) pixels in the image
-    def __init__(self, cell_temp_id_list, outlines_list, size, frame_id):
-        self.cell_temp_id = cell_temp_id_list
+    # frame_id - name of specific frame whose info is contained by this CPFrame, for later analysis
+    # embryo_boundaries - coordinates of user-specified ROI in order [(left x, y), (right x, y)]
+    # pix_to_id -
+    def __init__(self, outlines_list, size, frame_id):
         self.outlines_list = outlines_list
         self.size = size
         self.frame_id = frame_id
-        # self.pix_to_id = self.create_pix_to_id(cell_temp_id, outlines_list, size)
+        self.embryo_boundaries = []
+        # self.pix_to_id = self.create_pix_to_id()
 
     # creates a 2D array mapping every pixel to the cell temp_if it belongs to for later efficiency of access
     # output: 2D array of cell_temp_ids corresponding to the pixel they belong to, with (0,0) at lower left,
     #         pixels with no corresponding cell are marked with -1
     def create_pix_to_id(self):
-        ret_array = np.full(size, -1)
+        ret_array = np.full(self.size, -1)
 
-        for i in range(len(self.cell_temp_id)):
+        for i in range(len(self.outlines_list)):
             for j in range(len(self.outlines_list[i])):
                 x, y = self.outlines_list[i][j]
                 # convert grid to (0,0) at bottom left using formula (x,y) -> (y, x_max - 1 - x)
-                ret_array[self.size[0]-1-y,x] = self.cell_temp_id[i]
+                ret_array[self.size[0]-1-y,x] = i
 
         return ret_array
 
@@ -56,6 +58,24 @@ class CPFrame:
             min_max_list.append(temp_list)
 
         return min_max_list
+
+    # sets the left and right embryo boundaries in the CPFrame
+    # input: c1 - left (x,y) coordinates of bounding box
+    #         c2 - right (x,y) coordinates of bounding box
+    def set_boundaries(self, c1, c2):
+        self.embryo_boundaries = [c1, c2]
+
+    # checks that the provided x-coordinates of the bounding box are inside the user-specified ROI, returns boolean
+    # input: c1 - left (x, y) coordinates of bounding box
+    #         c2 - right (x, y) coordinates of bounding box
+    # output: True if bounding box is inside ROI, False otherwise
+    def check_boundaries(self, c1, c2):
+        if c1[0] < self.embryo_boundaries[0][0] or c1[1] < self.embryo_boundaries[0][1]:  # part of bounding box is to left of ROI
+            return False
+        elif c2[0] > self.embryo_boundaries[1][0] or c2[1] > self.embryo_boundaries[1][1]:    # part of bounding box is to right of ROI
+            return False
+        else:
+            return True
 
     # prints the CPFrame in a pretty way
     def print_cpframe(self, cell_temp_id=None):
@@ -86,7 +106,7 @@ if __name__ == "__main__":
                      [[2,0],[2,1],[3,0],[3,1],[4,0],[4,1]]]
     size = (5,5)
 
-    cpframe = CPFrame(cell_temp_id, outlines_list, size, 1)
+    cpframe = CPFrame(outlines_list, size, 1)
 
     print("Get map of cells:")
     print(cpframe.create_pix_to_id())

@@ -4,16 +4,16 @@
 # Cell tracker -- tracks 2D cells across time
 
 # import packages
-import cv2
 import os
 import load_npy
 import frames_to_video
 import tracker
-import pandas as pd
 
 # user-specified inputs
 FOLDER_NAME = "long_test"     # name of the folder where .npy files are stored
-VIDEO_FPS = 0.01    # frames per second desired in video, cannot be less than 0.01
+VIDEO_FPS = 1    # frames per second desired in mp4 video, cannot be less than 0.01
+                 # note: this does not affect the speed of the tracker - that is solely determined by the number of
+                 # items to track
 
 # algorithm used for tracker
 tracker_type = "TrackerCSRT"    # recommended algorithm
