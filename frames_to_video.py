@@ -15,14 +15,7 @@ def write_video(file_path, frames, fps):
     im_list = []
     for image in frames:
         temp_im = cv2.imread(image)
-
-        # if not temp_im:
-        #     print("Could not load image " + image)
-        #     exit()
         im_list.append(temp_im)
-
-    # cv2.imshow("image", im_list[0])
-    # cv2.waitKey(0)
 
     # get dimensions of image
     h,w,l = im_list[0].shape
@@ -42,7 +35,7 @@ if __name__ == "__main__":
     import os
 
     # png file
-    FOLDER = "correct_ratio"
+    FOLDER = "z_tracking_test"
     frame_list = []
     for filename in os.scandir(FOLDER):
         if filename.is_file() and os.path.splitext(filename)[1] == ".png":

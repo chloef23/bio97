@@ -36,7 +36,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Tru
     # allow the user to set the boundaries of the embryo or ROI, if desired
     if set_bounds:
         print("\nClick and drag to select the bounds of the embryo or desired tracking area.\n"
-              "Press enter to confirm selection.\n")
+              "Press enter to confirm selection.")
 
         embryo_bounds = cv2.selectROI(frame, False)     # user manually selects ROI
         c1 = (embryo_bounds[0], embryo_bounds[1])
@@ -44,7 +44,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Tru
         init_cpframe.set_boundaries(c1, c2)
         cv2.destroyAllWindows()     # close ROI selection window
 
-    print("Initializing tracker...")
+    print("\nInitializing tracker...")
     print("Press 'ESC' at any time to exit.")
 
     multi_tracker = []    # list of all the trackers
@@ -86,7 +86,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Tru
                 p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
 
                 # remove trackers that have jumped to a different cell
-                print("remove")
 
                 # check if any part of the bounding box has exited frame or user-selected ROI
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
@@ -99,7 +98,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Tru
                     cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)     # blue box
 
                     # update cell information in CPFrame based on new tracker location
-                    print("update")
 
             # display the user-selected ROI
             if set_bounds:
@@ -130,8 +128,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Tru
 def create_tracker(tracker_type):
     if tracker_type == "TrackerKCF":
         tracker = cv2.TrackerKCF_create()
-    elif tracker_type == "TrackerMOSSE":
-        tracker = cv2.TrackerMOSSE_create()
     elif tracker_type == "TrackerCSRT":
         tracker = cv2.TrackerCSRT_create()
     else:   # default

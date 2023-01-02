@@ -1,7 +1,7 @@
 # Chloe Fugle (chloe.m.fugle.23@dartmouth.edu)
 # 10/7/22
 # Bio97 Thesis Project
-# CPFrame is an object that hold the data for each frame converted from a single .npy file
+# CPFrame is an object that holds the data for each frame converted from a single .npy file
 
 import numpy as np
 from operator import itemgetter
@@ -18,10 +18,10 @@ class CPFrame:
         self.size = size
         self.frame_id = frame_id
         self.embryo_boundaries = []
-        # self.pix_to_id = self.create_pix_to_id()
+        self.pix_to_id = self.create_pix_to_id()
 
-    # creates a 2D array mapping every pixel to the cell temp_if it belongs to for later efficiency of access
-    # output: 2D array of cell_temp_ids corresponding to the pixel they belong to, with (0,0) at lower left,
+    # creates a 2D array mapping every pixel to the cell temp_id it belongs to for later efficiency of access
+    # output: 2D array of cell_temp_ids corresponding to the pixel they belong to, with (0,0) at top right,
     #         pixels with no corresponding cell are marked with -1
     def create_pix_to_id(self):
         ret_array = np.full(self.size, -1)
@@ -29,8 +29,7 @@ class CPFrame:
         for i in range(len(self.outlines_list)):
             for j in range(len(self.outlines_list[i])):
                 x, y = self.outlines_list[i][j]
-                # convert grid to (0,0) at bottom left using formula (x,y) -> (y, x_max - 1 - x)
-                ret_array[self.size[0]-1-y,x] = i
+                ret_array[x, y] = i
 
         return ret_array
 
@@ -40,7 +39,7 @@ class CPFrame:
     def get_cell_coords(self, temp_id):
         return self.outlines_list[temp_id]
 
-    # returns the minimum and maxiumum coordinates of a theoretical box around each cell
+    # returns the minimum and maximum coordinates of a theoretical box around each cell
     # output: list of list of two tuples giving the top right and bottom left coordinates of the box
     #         for each cell in form [[(min x, min y), (max x, max y)]...]
     #         note: (0, 0) is at the top left
@@ -109,6 +108,7 @@ if __name__ == "__main__":
     cpframe = CPFrame(outlines_list, size, 1)
 
     print("Get map of cells:")
+    print("Note: (0, 0) is at the top right")
     print(cpframe.create_pix_to_id())
 
     print("\nGet cell coordinates of cell number 2:")

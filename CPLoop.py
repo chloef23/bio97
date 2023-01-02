@@ -11,9 +11,8 @@ import os
 import cv2
 from PyQt5 import QtCore, QtWidgets
 from cellpose import models, io
-from cellpose import main as cp_main
+from cellpose import __main__ as cpmain
 
-PATH = "path"
 
 def main(image_list, gpu_bool, start_z=0, end_z=None, switch_z=None, start_model="TN3", switch_model="TN2", pretrained=None):
 
@@ -34,6 +33,13 @@ def main(image_list, gpu_bool, start_z=0, end_z=None, switch_z=None, start_model
 
     size_model = models.SizeModel(model_cp_0)
     diam, diam_style = size_model.eval(image_list)
+
+    filename_list = []
+    for image in image_list:
+        name = extract_ztname(image)
+        filename_list.append(name)
+
+    segment_image(image_list, filename_list, model_cp_0, diam)
 
 
 # segments an image or list of images using Cellpose and saves it to a .npy file (and .png if png=True)
@@ -73,41 +79,44 @@ def check_args(args):
                   "LC1", "LC2", "LC3", "LC4", "pretrained"]
 
     # check that file name is valid and get z_max and t_max
-    for file in args.image_folder:
-        if not re.match(r'.*\/?[z|Z]\d+[t|T]\d+$', file, re.I):  # check to see if file follows pattern PATH/Z001T001
+    for file in os.scandir(args.image_folder):
+        if not file.is_file():
+            print("Error: file" + file.path + " does not exist.")
+            return False
+        if not re.match(r'.*\/?[z|Z]\d+[t|T]\d+', file.path, re.I):  # check to see if file follows pattern PATH/Z001T001
             print("Error: File names do not match pattern PATH/Z__T__, where __ can be any number of integers")
             ret = False
         else:
-            z, t = extract_zt(file)
+            z, t = extract_zt(file.path)
 
             # find maximum z and t
             if z > z_max: z_max = z
             if t > t_max: t_max = t
 
     # check that layer to start segmentation on (switch_z) is positive and not greater than the number of z layers in the stack
-    if args.s and args.s < 0 or args.s > z_max:
+    if args.start_z and (args.start_z < 0 or args.start_z > z_max):
         print("Error: start_z must be be greater than 0 and less than the maximum z value")
         ret = False
     # check that layer to end segmentation on (end_z) is positive and not greater than the number of z layers in the stack
-    if args.e and args.e < 0 or args.z > z_max:
+    if args.end_z and (args.end_z < 0 or args.end_z > z_max):
         print("Error: end_z must be be greater than 0 and less than the maximum z value")
         ret = False
     # check that layer to switch segmentation model on (switch_z) is positive and not greater than the number of z layers in the stack
-    if args.w and args.w < 0 or args.w > z_max:
+    if args.switch_z and (args.switch_z < 0 or args.switch_z > z_max):
         print("Error: switch_z must be be greater than 0 and less than the maximum z value")
         ret = False
     # check that first (or only) model has a valid model name
-    if args.sm and args.sm not in model_list:
+    if args.start_model and args.start_model not in model_list:
         print("Error: start_model is not a valid model. Must be one of: [cyto, nuclei, cyto2, tissuenet, TN1, TN2, TN3,"
               "livecell, LC1, LC2, LC3, LC4, pretrained]")
         ret = False
     # check that switch model has a valid model name
-    if args.sw and args.sw not in model_list:
+    if args.switch_model and args.switch_model not in model_list:
         print("Error: switch_model is not a valid model. Must be one of: [cyto, nuclei, cyto2, tissuenet, TN1, TN2,"
               "TN3, livecell, LC1, LC2, LC3, LC4, pretrained]")
         ret = False
     # check if pretrained PATH gives a valid file
-    if args.p and not os.path.isfile(args.p):
+    if args.pretrained and not os.path.isfile(args.pretrained):
         print("Error: pretrained model is not a valid file")
         ret = False
 
@@ -119,8 +128,8 @@ def check_args(args):
 # input: file_path - PATH to file
 # output: filename - z__t__ form of the filename
 def extract_ztname(file_path):
-    file_path.lower()  # make file lowercase
-    zt_form = re.match(r'z\d+t\d+$', file_path)
+    file_path = file_path.lower()  # make file lowercase
+    zt_form = re.search(r'z\d+t\d+', file_path).group(0)    # return string of match
 
     return zt_form
 
@@ -131,9 +140,9 @@ def extract_ztname(file_path):
 # output: z, t - integers representing the t and z layers of the file
 def extract_zt(file_path):
     zt_form = extract_ztname(file_path)
-    z, t = re.split(r'[zt]', str(zt_form))
+    empty, z, t = re.split(r'[zt]', str(zt_form))   # returns ['', xx, xx] where xx are integers
 
-    return z, t
+    return int(z), int(t)
 
 
 if __name__ == "__main__":
@@ -156,4 +165,11 @@ if __name__ == "__main__":
     if not check_args(args):
         exit()
 
-    cp_main()  # start Cellpose and GUI
+    if args.gpu:
+        gpu = True
+    else:
+        gpu = False
+
+    # cpmain.main()  # start Cellpose and GUI
+
+    main(args.image_folder, gpu)
