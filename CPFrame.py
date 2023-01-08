@@ -6,13 +6,14 @@
 import numpy as np
 from operator import itemgetter
 
+
 class CPFrame:
 
     # outlines_list - list of the pixels contained within each cell outline
     # size - tuple of the number of (x, y) pixels in the image
     # frame_id - name of specific frame whose info is contained by this CPFrame, for later analysis
     # embryo_boundaries - coordinates of user-specified ROI in order [(left x, y), (right x, y)]
-    # pix_to_id -
+    # pix_to_id - 2D array mapping every pixel to the cell temp_id it belongs to
     def __init__(self, outlines_list, size, frame_id):
         self.outlines_list = outlines_list
         self.size = size

@@ -11,11 +11,12 @@ import tracker
 # convert a list of .npy images to an .mp4 video, then runs the cell tracker for that video
 # input: image_list - list of all .npy images in the order of the video
 #        tracker_type - cv2 tracker algorithm to use, "TrackerCSRT" is recommended
+#        frame_connector - initialized FrameConnector object, can be empty or can contain information
 #        video_fps - int; frames per second of output .mp4 created from the .npys (not tracking video), default is 4
 #        overwrite_images - boolean; if True, .pngs generated from .npys will be overwritten (if present), if False,
 #                           .pngs will not be re-generated
 # output: none
-def run_tracker(image_list, tracker_type, video_fps=4, overwrite_image=False):
+def run_tracker(image_list, tracker_type, frame_connector, video_fps=4, overwrite_image=False):
 
     # convert all .npy in folder to pngs
     png_list = []
@@ -56,12 +57,15 @@ def run_tracker(image_list, tracker_type, video_fps=4, overwrite_image=False):
 # unit test
 if __name__ == "__main__":
     import os
+    import FrameConnector
 
     FOLDER_NAME = "z_tracking_test"  # name of the folder where .npy files are stored
     VIDEO_FPS = 4
     TRACKER_TYPE = "TrackerCSRT"
 
     verbose = False     # when verbose == True, files that are unable to load will print error statements
+
+    frame_connector = FrameConnector.FrameConnector()
 
     # get the folder containing .npy files of the image sequence
     video_folder = FOLDER_NAME
@@ -73,5 +77,5 @@ if __name__ == "__main__":
             print("Error: unable to load file" + filename.path + " in folder")
 
 
-    run_tracker(img_list, TRACKER_TYPE, video_fps=VIDEO_FPS, overwrite_image=False)
+    run_tracker(img_list, TRACKER_TYPE, frame_connector, video_fps=VIDEO_FPS, overwrite_image=False)
 
