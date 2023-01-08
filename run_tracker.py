@@ -8,13 +8,13 @@ import load_npy
 import frames_to_video
 import tracker
 
-# runs the cell tracker for one video
+# convert a list of .npy images to an .mp4 video, then runs the cell tracker for that video
 # input: image_list - list of all .npy images in the order of the video
 #        tracker_type - cv2 tracker algorithm to use, "TrackerCSRT" is recommended
 #        video_fps - int; frames per second of output .mp4 created from the .npys (not tracking video), default is 4
 #        overwrite_images - boolean; if True, .pngs generated from .npys will be overwritten (if present), if False,
 #                           .pngs will not be re-generated
-# output:
+# output: none
 def run_tracker(image_list, tracker_type, video_fps=4, overwrite_image=False):
 
     # convert all .npy in folder to pngs
@@ -50,7 +50,7 @@ def run_tracker(image_list, tracker_type, video_fps=4, overwrite_image=False):
     video_file_path = FOLDER_NAME + "/cell_tracker_video.mp4"
     frames_to_video.write_video(video_file_path, png_list, video_fps)
 
-    tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0], set_bounds=False)
+    tracker.track(video_file_path, frame_num, tracker_type, cpframe_list)
 
 
 # unit test
@@ -61,12 +61,17 @@ if __name__ == "__main__":
     VIDEO_FPS = 4
     TRACKER_TYPE = "TrackerCSRT"
 
-    # Get the folder containing .npy files of the image sequence
+    verbose = False     # when verbose == True, files that are unable to load will print error statements
+
+    # get the folder containing .npy files of the image sequence
     video_folder = FOLDER_NAME
     img_list = []  # list containing all filenames of images in folder
     for filename in os.scandir(video_folder):
         if filename.is_file() and os.path.splitext(filename)[1] == ".npy":
             img_list.append(filename.path)
+        elif verbose:
+            print("Error: unable to load file" + filename.path + " in folder")
+
 
     run_tracker(img_list, TRACKER_TYPE, video_fps=VIDEO_FPS, overwrite_image=False)
 

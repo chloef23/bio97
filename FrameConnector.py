@@ -6,7 +6,8 @@
 class FrameConnector:
 
     # cell_dict_list - list of cell dictionaries, dictionaries are of each cell's coordinates, key is frame ID
-    #                  note: global cell IDs are assigned from cells present in the time (z-constant) video
+    #                  note: global cell IDs are assigned from cells present in the first frame of the time
+    #                  (z-constant) video
     def __init__(self):
         self.cell_dict_list = []
 
@@ -15,7 +16,7 @@ class FrameConnector:
     # note: in the first frame when this is called, cells must be passed in in the order of their cell-ids
     # input: cell_id - the global cell id, must be an integer >= 0
     #        frame_id - the id of the video frame, recommended that it is in form zx_tx
-    #        coords - list of the coordinates of the cell at the frame
+    #        coords - list of the coordinates of the cells in the frame
     def add_frame(self, cell_id, frame_id, coords):
         if cell_id > len(self.cell_dict_list):      # if global cell_id not already
             temp_dict = {}

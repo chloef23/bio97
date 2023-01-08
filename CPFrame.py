@@ -58,6 +58,20 @@ class CPFrame:
 
         return min_max_list
 
+    # returns the cell containing a given coordinate
+    # input: coord - an (x,y) tuple representing a coordinate
+    # output: the integer temp_id of the cell containing that coordinate, or -1 if no such cell exists,
+    #         or -2 if the coordinate is out of bounds
+    def get_cell_from_coord(self, coord):
+
+        # check that provided coordinate is in bounds
+        if (coord[0] > self.size[0]) or (coord[1] > self.size[1]) or (coord[0] < 0) or (coord[1] < 0):
+            return -2
+
+        temp_id = self.pix_to_id[coord]    # will return the temp_id of the cell, or -1 is no cell exists at that coord
+
+        return temp_id
+
     # sets the left and right embryo boundaries in the CPFrame
     # input: c1 - left (x,y) coordinates of bounding box
     #         c2 - right (x,y) coordinates of bounding box
@@ -97,12 +111,13 @@ class CPFrame:
 
 # unit testing
 if __name__ == "__main__":
-    cell_temp_id = [0, 1, 2, 3, 4]
+    cell_temp_id = [0, 1, 2, 3, 4, 5]
     outlines_list = [[[0,4],[1,4],[0,3],[1,3]],
                      [[2,4],[2,3],[3,4],[4,4]],
                      [[2,2],[3,2],[3,3],[4,2],[4,3]],
                      [[0,0],[0,1],[1,0],[1,1],[0,2],[1,2]],
-                     [[2,0],[2,1],[3,0],[3,1],[4,0],[4,1]]]
+                     [[2,0],[2,1],[3,0],[3,1],[4,0]],
+                     [[4,1]]]
     size = (5,5)
 
     cpframe = CPFrame(outlines_list, size, 1)
@@ -113,6 +128,9 @@ if __name__ == "__main__":
 
     print("\nGet cell coordinates of cell number 2:")
     print(cpframe.get_cell_coords(2))
+
+    print("\nGet the cell at coordinates (2,2):")
+    print(cpframe.get_cell_from_coord((2,2)))
 
     print("\nPrint the CPFrame data structure:")
     cpframe.print_cpframe()
