@@ -47,11 +47,17 @@ def run_tracker(image_list, tracker_type, frame_connector, video_fps=4, overwrit
         cpframe_list.append(cpframe)
         frame_num += 1
 
-    # convert list of images to mp4 video
+    # convert pngs to mp4 video
     video_file_path = FOLDER_NAME + "/cell_tracker_video.mp4"
     frames_to_video.write_video(video_file_path, png_list, video_fps)
 
-    tracker.track(video_file_path, frame_num, tracker_type, cpframe_list)
+    # run the tracker on the video
+    coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0])
+
+    # match each coordinate in the
+
+    # add the list of center coordinates from this video to the FrameConnector
+
 
 
 # unit test
@@ -78,4 +84,3 @@ if __name__ == "__main__":
 
 
     run_tracker(img_list, TRACKER_TYPE, frame_connector, video_fps=VIDEO_FPS, overwrite_image=False)
-

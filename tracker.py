@@ -11,11 +11,13 @@ import math
 # inputs: video_file_path - the PATH to the .mp4 video
 #         frame_num - the number of frames the video has
 #         tracker_type - cv2 tracker algorithm to use, "TrackerCSRT" is recommended
-#         cpframe_list - the list of initialized CPFrame objects for each frame of the video
+#         cpframe_list - the initialized CPFrame object for the first frame of the video
 #         set_bounds - whether the user will be prompted to manually set the bounds of the embryo, defaults to False
-# output: none
+# output: center_coords_list - list of lists containing the center coordinate information of each tracker for each
+#         frame in the video, in form:
+#        [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
 
-def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=False):
+def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=False):
 
     # set speed out output video
     # note: this is only relevant for videos with few trackers - speed decreases as more trackers are added
@@ -41,9 +43,6 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
                              (frame_width, frame_height), True)
     if not ret:
         print("Video cannot be read from file.")
-
-    # set first CPFrame object as the CPFrame from the first .npy frame of the video
-    init_cpframe = cpframe_list[0]
 
     # allow the user to set the boundaries of the embryo or ROI, if desired
     if set_bounds:
@@ -76,6 +75,13 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
         temp_tracker.init(frame, bbox)
         multi_tracker.append(temp_tracker)
 
+    # create list of lists containing the center coordinate information of each tracker for each frame in the video
+    # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
+    center_coords_list = []
+    for tracker in multi_tracker:
+        temp_list = []
+        center_coords_list.append(temp_list)
+
     # start tracking frame-by-frame
     for i in range(0, frame_num - 1):
         ret, frame = video.read()
@@ -83,11 +89,10 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
             print("Video could not be read to tracker.")
             break
 
-        cur_cpframe = cpframe_list[i]       # the CPFrame corresponding to the current frame being tracked
-
         timer = cv2.getTickCount()      # for calculation of frames per second
 
         # multi_tracker cycles through every tracker and updates each tracker individually
+        j = 0
         for tracker in multi_tracker:
             ret, bbox = tracker.update(frame)   # update individual cell tracker
             fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)     # calculate FPS
@@ -105,7 +110,7 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)     # red box
                     multi_tracker.remove(tracker)      # remove tracker from list to be updated next frame
-                elif set_bounds and not cur_cpframe.check_boundaries(p1, p2):
+                elif set_bounds and not init_cpframe.check_boundaries(p1, p2):
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)
                     multi_tracker.remove(tracker)
                 else:
@@ -114,11 +119,13 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
                     # update cell information in CPFrame based on new tracker location
                     # tracker_center is the integer center (rounded up) coordinate of the tracking box
                     tracker_center = (math.ceil(0.5*int(p1[0]) + 0.5*int(p2[0])), math.ceil(0.5*int(p1[1]) + 0.5*int(p2[1])))
-                    cell_temp_id = cur_cpframe.get_cell_from_coord(tracker_center)
+                    center_coords_list[j].append(tracker_center)
 
             # display the user-selected ROI
             if set_bounds:
                 cv2.rectangle(frame, embryo_bounds, (0, 150, 0), 2, 1)  # green box
+
+            j += 1
 
         # print frames per second on the tracking window
         if fps < 1:
@@ -137,6 +144,8 @@ def track(video_file_path, frame_num, tracker_type, cpframe_list, set_bounds=Fal
     video.release()
     output.release()
     cv2.destroyAllWindows()
+
+    return center_coords_list
 
 
 # create tracker with specified algorithm
