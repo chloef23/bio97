@@ -105,6 +105,8 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                 p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))       # lower right side
 
                 # remove trackers that have jumped to a different cell
+                # remove trackers that have too much purple
+
 
                 # check if any part of the bounding box has exited frame or user-selected ROI
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
@@ -126,6 +128,9 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                 cv2.rectangle(frame, embryo_bounds, (0, 150, 0), 2, 1)  # green box
 
             j += 1
+
+        print("frame_no: " + str(i))
+        print(center_coords_list)
 
         # print frames per second on the tracking window
         if fps < 1:

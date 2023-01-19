@@ -24,6 +24,15 @@ def load(file_name, png_generated=False):
 
     # get list of pixels containing the outlines from file
     outlines = outlines_list(file['masks'])
+    # cv2.floodFill(outlines, None, (0, 0), 1)
+    # np.where(outlines == 0)
+
+    # plot image
+    plt.imshow(file['img'])
+    for o in outlines:
+        plt.plot(o[:, 0], o[:, 1], color='r')
+    plt.show()
+
     png_name = file_name + ".png"
     image_array = file['img']
 
@@ -64,9 +73,9 @@ def create_cpframe(outlines, size, file_id):
 def outlines_list(masks):
     outpix=[]
     for n in np.unique(masks)[1:]:
-        mn = masks==n
+        mn = masks == n
         if mn.sum() > 0:
-            contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)
+            contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_NONE)
             contours = contours[-2]
             cmax = np.argmax([c.shape[0] for c in contours])
             pix = contours[cmax].astype(int).squeeze()
@@ -74,6 +83,7 @@ def outlines_list(masks):
                 outpix.append(pix)
             else:
                 outpix.append(np.zeros((0,2)))
+    print(outpix)
     return outpix
 
 

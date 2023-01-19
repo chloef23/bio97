@@ -58,6 +58,15 @@ class FrameConnector:
 
         return ret
 
+    # returns if the FrameConnector object is empty or not
+    # inputs: None
+    # output: returns True if the object is empty, False if not
+    def is_empty(self):
+        if len(self.cell_dict_list) == 0:
+            return True
+        else:
+            return False
+
     # prints the FrameConnector dictionary in a pretty way
     def print_FC(self):
         cell_id = 0
