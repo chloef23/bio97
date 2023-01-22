@@ -31,6 +31,7 @@ def run_tracker(image_list, tracker_type, frame_connector, coords_list=None, vid
             bool = not overwrite_image
 
             # load information contained in .npys, generate pngs only if png_generated == False
+            print("Loading png " + png_name)
             png, cpframe = load_npy.load(npy, png_generated=bool)
             print(png + " found")
 

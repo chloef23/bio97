@@ -24,14 +24,15 @@ def load(file_name, png_generated=False):
 
     # get list of pixels containing the outlines from file
     outlines = outlines_list(file['masks'])
-    # cv2.floodFill(outlines, None, (0, 0), 1)
-    # np.where(outlines == 0)
 
-    # plot image
-    plt.imshow(file['img'])
-    for o in outlines:
-        plt.plot(o[:, 0], o[:, 1], color='r')
-    plt.show()
+    for i in outlines[0]:
+        print((i[0], i[1]), end=",")
+
+    # plot image -- uncomment to show the image, will prevent the rest of the tracker from working
+    # plt.imshow(file['img'])
+    # for o in outlines:
+    #     plt.plot(o[:, 0], o[:, 1], color='r')
+    # plt.show()
 
     png_name = file_name + ".png"
     image_array = file['img']
@@ -83,7 +84,6 @@ def outlines_list(masks):
                 outpix.append(pix)
             else:
                 outpix.append(np.zeros((0,2)))
-    print(outpix)
     return outpix
 
 

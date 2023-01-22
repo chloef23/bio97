@@ -5,7 +5,7 @@
 
 import numpy as np
 from operator import itemgetter
-
+from shapely.geometry import Point, Polygon
 
 class CPFrame:
 
@@ -32,7 +32,29 @@ class CPFrame:
                 x, y = self.outlines_list[i][j]
                 ret_array[x, y] = i
 
+        ret_array = self.check_within_cell(ret_array)
+
         return ret_array
+
+    # assigns every pixel within a cell to that cell in the outlines array
+    # if a pixel is not located within a cell, it retains the -1 from the outlines array
+    # input: outlines_array - 2D array containing pixels containing the outlines of cells marked by the cell_id (an
+    #                         integer 0 to n) and pixels not containing any outline with -1
+    # output 2D array where all pixels contained within a cell are marked by the cell_id
+    def check_within_cell(self, outlines_array):
+        k = 0
+        for cell in self.outlines_list:
+            poly = Polygon(cell)
+            for i in range(len(outlines_array)):
+                for j in range(len(outlines_array[i])):
+                    print(i,j)
+                    point = Point(i,j)
+                    if point.intersects(poly):
+                        outlines_array[i,j] = k
+            k += 1
+
+        return outlines_array
+
 
     # returns the list of coordinates associated with a temp_id
     # input: temp_id - the temp_id of the cell
@@ -112,19 +134,30 @@ class CPFrame:
 
 # unit testing
 if __name__ == "__main__":
-    cell_temp_id = [0, 1, 2, 3, 4, 5]
-    outlines_list = [[[0,4],[1,4],[0,3],[1,3]],
-                     [[2,4],[2,3],[3,4],[4,4]],
-                     [[2,2],[3,2],[3,3],[4,2],[4,3]],
-                     [[0,0],[0,1],[1,0],[1,1],[0,2],[1,2]],
-                     [[2,0],[2,1],[3,0],[3,1],[4,0]],
-                     [[4,1]]]
-    size = (5,5)
+    # cell_temp_id = [0, 1, 2, 3, 4, 5]
+    # outlines_list = [[[0,4],[1,4],[0,3],[1,3]],
+    #                  [[2,4],[2,3],[3,4],[4,4]],
+    #                  [[2,2],[3,2],[3,3],[4,2],[4,3]],
+    #                  [[0,0],[0,1],[1,0],[1,1],[0,2],[1,2]],
+    #                  [[2,0],[2,1],[3,0],[3,1],[4,0]],
+    #                  [[4,1]]]
+    # size = (5,5)
+    #
+    # cpframe = CPFrame(outlines_list, size, 1)
 
-    cpframe = CPFrame(outlines_list, size, 1)
+    cell_temp_id = [0, 1, 2, 3, 4, 5]
+    outlines_list = [[[0,5],[1,5],[2,5],[0,6],[2,6]],
+                    [[1,0],[0,1],[2,1],[0,2],[2,2],[0,3],[2,3],[1,4]],
+                    [[2,0],[3,0],[4,0],[5,0],[3,1],[6,1],[3,2],[6,2],[3,3],[6,3],[4,4],[5,4]],
+                    [[6,4],[3,5],[4,5],[5,5],[6,5],[3,6],[4,6],[5,6],[6,6]]]
+
+
+    size = (7,7)
+
+    cpframe = CPFrame(outlines_list, size, 2)
 
     print("Get map of cells:")
-    print("Note: (0, 0) is at the top right")
+    print("Note: (0, 0) is at the top left, the x axis is vertical, and the y axis is horizontal")
     print(cpframe.create_pix_to_id())
 
     print("\nGet cell coordinates of cell number 2:")
