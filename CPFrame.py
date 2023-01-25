@@ -5,7 +5,7 @@
 
 import numpy as np
 from operator import itemgetter
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, MultiPoint
 
 class CPFrame:
 
@@ -43,16 +43,17 @@ class CPFrame:
     # output 2D array where all pixels contained within a cell are marked by the cell_id
     def check_within_cell(self, outlines_array):
         k = 0
+        min_max = self.get_cell_min_max()
         for cell in self.outlines_list:
-            poly = Polygon(cell)
-            for i in range(len(outlines_array)):
-                for j in range(len(outlines_array[i])):
-                    print(i,j)
+            min = (min_max[k][0])
+            max = (min_max[k][1])
+            for i in range(min[0], max[0] + 1):     # min to max x coordinates
+                for j in range(min[1], max[1] + 1):     # min to max y coordinates
+                    poly = Polygon(cell)
                     point = Point(i,j)
                     if point.intersects(poly):
                         outlines_array[i,j] = k
             k += 1
-
         return outlines_array
 
 

@@ -129,9 +129,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
 
             j += 1
 
-        print("frame_no: " + str(i))
-        print(center_coords_list)
-
         # print frames per second on the tracking window
         if fps < 1:
             fps_str = "< 1"

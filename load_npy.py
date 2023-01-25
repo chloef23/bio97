@@ -25,9 +25,6 @@ def load(file_name, png_generated=False):
     # get list of pixels containing the outlines from file
     outlines = outlines_list(file['masks'])
 
-    for i in outlines[0]:
-        print((i[0], i[1]), end=",")
-
     # plot image -- uncomment to show the image, will prevent the rest of the tracker from working
     # plt.imshow(file['img'])
     # for o in outlines:

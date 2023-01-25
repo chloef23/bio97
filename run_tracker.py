@@ -31,7 +31,6 @@ def run_tracker(image_list, tracker_type, frame_connector, coords_list=None, vid
             bool = not overwrite_image
 
             # load information contained in .npys, generate pngs only if png_generated == False
-            print("Loading png " + png_name)
             png, cpframe = load_npy.load(npy, png_generated=bool)
             print(png + " found")
 
@@ -60,26 +59,21 @@ def run_tracker(image_list, tracker_type, frame_connector, coords_list=None, vid
     for i in range(len(cpframe_list)):
 
         # get list of all center cell coordinates during the current CPFrame
-        temp_coords_list = []      # the coordinate for each cell (ordered by global ID) in the current frame
+        temp_coords_list = []      # the coordinate for each cell in the current frame
         for cell in coords_list:
             if i < len(cell):
                 temp_coords_list.append(cell[i])
 
         if frame_connector.is_empty():
             for track in coords_list:
+                if i > len(track) - 1:     # tracker was aborted before end of video
+                    continue
                 # match tracker center coordinate to cell in CPFrame
-                print("track " + str(track[i]))
-                print(cpframe_list[i].frame_id)
-                print(cpframe_list[i].print_cpframe())
                 cell_id = cpframe_list[i].get_cell_from_coord(track[i])
-                print("cell_id " + str(cell_id))
-                exit()
                 if cell_id == -1:
                     continue
                 else:
                     cell_coords = cpframe_list[i].get_cell_coords(cell_id)
-
-
 
         # cycle through trackers and match coordinates to get cell global_id
         for track in coords_list:
@@ -90,7 +84,6 @@ def run_tracker(image_list, tracker_type, frame_connector, coords_list=None, vid
             else:
                 local_id = temp_coords_list.index(track[i])
 
-        exit()
 
 
 
@@ -103,7 +96,7 @@ if __name__ == "__main__":
     import os
     import FrameConnector
 
-    FOLDER_NAME = "z_tracking_test"  # name of the folder where .npy files are stored
+    FOLDER_NAME = ".npy test_1"  # name of the folder where .npy files are stored
     VIDEO_FPS = 4
     TRACKER_TYPE = "TrackerCSRT"
 
