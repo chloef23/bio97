@@ -13,12 +13,12 @@ class FrameConnector:
 
     # creates a dictionary for each global cell_id if not already created, then adds the cell coordinates to
     # the dictionary with the key as the frame_id
-    # note: in the first frame when this is called, cells must be passed in in the order of their cell-ids
+    # note: in the first frame when this is called, cells must be passed in in the order of their cell_ids
     # input: cell_id - the global cell id, must be an integer >= 0
-    #        frame_id - the id of the video frame, recommended that it is in form zx_tx
+    #        frame_id - the ID of the video frame, recommended that it is in form zx_tx
     #        coords - list of the coordinates of the cells in the frame
     def add_frame(self, cell_id, frame_id, coords):
-        if cell_id > (len(self.cell_dict_list) - 1):      # if global cell_id not already in dictionary
+        if cell_id > (len(self.cell_dict_list) - 1):  # if global cell_id not already in dictionary
             temp_dict = {}
             temp_dict[frame_id] = coords
             self.cell_dict_list.append(temp_dict)
@@ -58,6 +58,26 @@ class FrameConnector:
 
         return ret
 
+    # returns the coordinates of all cells at a given frame ID
+    # input: frame_id - the frame_id to return cells from
+    # output: coords_list - the list of the coordinates of each cell in that frame, in order of their global_id
+    #         note: appends -1 to the list if the cell is not present in the frame_id
+    def get_cells_in_frame(self, frame_id):
+        coords_list = []
+        for cell in self.cell_dict_list:
+            if frame_id in cell:
+                coords_list.append(cell[frame_id])
+            else:
+                coords_list.append(-1)
+
+        return coords_list
+
+    # returns the entire cell dictionary list structure
+    # inputs: None
+    # output: returns the entire cell dictionary list structure
+    def get_dict_list(self):
+        return self.cell_dict_list
+
     # returns if the FrameConnector object is empty or not
     # inputs: None
     # output: returns True if the object is empty, False if not
@@ -77,11 +97,10 @@ class FrameConnector:
 
 # unit testing
 if __name__ == "__main__":
-
     frame_connector = FrameConnector()
 
     print("\nAdd a cell (ID = 0) to an empty FrameConnector structure:")
-    frame_connector.add_frame(1, "test_frame_00", [(0,0), (0,1)])
+    frame_connector.add_frame(1, "test_frame_00", [(0, 0), (0, 1)])
     frame_connector.print_FC()
 
     print("\nAdd a cell (ID = 1) to a FrameConnector structure:")
@@ -110,3 +129,9 @@ if __name__ == "__main__":
 
     print("\nTest retrieving coordinates of an invalid cell (5) with an invalid frame (test_frame_iv):")
     print(frame_connector.retrieve_frame_info(5, "test_frame_iv"))
+
+    print("\nTest retrieving coordinates of a valid frame (test_frame_00):")
+    print(frame_connector.get_cells_in_frame("test_frame_00"))
+
+    print("\nTest retrieving coordinates of an invalid frame (test_frame_iv):")
+    print(frame_connector.get_cells_in_frame("test_frame_iv"))

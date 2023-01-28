@@ -7,6 +7,7 @@
 import load_npy
 import frames_to_video
 import tracker
+import match_coords
 
 # convert a list of .npy images to an .mp4 video, then runs the cell tracker for that video
 # input: image_list - list of all .npy images in the order of the video
@@ -52,43 +53,12 @@ def run_tracker(image_list, tracker_type, frame_connector, coords_list=None, vid
     frames_to_video.write_video(video_file_path, png_list, video_fps)
 
     if not coords_list:
-        # run the tracker on the video
+        # run the tracker program on the video
         coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0])
 
-    # match each coordinate in the coordinate list to a cell in the given frame of the video
-    for i in range(len(cpframe_list)):
-
-        # get list of all center cell coordinates during the current CPFrame
-        temp_coords_list = []      # the coordinate for each cell in the current frame
-        for cell in coords_list:
-            if i < len(cell):
-                temp_coords_list.append(cell[i])
-
-        if frame_connector.is_empty():
-            for track in coords_list:
-                if i > len(track) - 1:     # tracker was aborted before end of video
-                    continue
-                # match tracker center coordinate to cell in CPFrame
-                cell_id = cpframe_list[i].get_cell_from_coord(track[i])
-                if cell_id == -1:
-                    continue
-                else:
-                    cell_coords = cpframe_list[i].get_cell_coords(cell_id)
-
-        # cycle through trackers and match coordinates to get cell global_id
-        for track in coords_list:
-            if i > len(track) - 1:
-                continue
-            elif track[i] not in temp_coords_list:    # cell center does not match any known cell centers
-                continue
-            else:
-                local_id = temp_coords_list.index(track[i])
-
-
-
-
-    # add the list of center coordinates from this video to the FrameConnector
-
+    # match trackers to cells and add their coordinates to FrameConnector
+    print("Matching trackers...")
+    match_coords.match(cpframe_list, frame_connector, coords_list)
 
 
 # unit test

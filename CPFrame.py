@@ -63,6 +63,12 @@ class CPFrame:
     def get_cell_coords(self, temp_id):
         return self.outlines_list[temp_id]
 
+    # returns frame_id of the cp_frame
+    # input: None
+    # output: the frame_id of the cp_frame
+    def get_frame_id(self):
+        return self.frame_id
+
     # returns the minimum and maximum coordinates of a theoretical box around each cell
     # output: list of list of two tuples giving the top right and bottom left coordinates of the box
     #         for each cell in form [[(min x, min y), (max x, max y)]...]
