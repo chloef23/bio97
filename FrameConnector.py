@@ -3,6 +3,9 @@
 # Bio97 Thesis Project
 # Wrapper class for CPTracker that connects the CPFrames across all frames and videos
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 class FrameConnector:
 
     # cell_dict_list - list of cell dictionaries, dictionaries are of each cell's coordinates, key is frame ID
@@ -87,13 +90,50 @@ class FrameConnector:
         else:
             return False
 
-    # prints the FrameConnector dictionary in a pretty way
+    # prints the FrameConnector dictionaries in a pretty way
     def print_FC(self):
         cell_id = 0
         for i in self.cell_dict_list:
             print("cell_id " + str(cell_id) + ": " + str(i))
             cell_id += 1
 
+    # print the FrameConnector dictionaries in a pretty way, without all the cell coordinates
+    def print_FC_simple(self):
+        cell_id = 0
+        for i in self.cell_dict_list:
+            print("cell_id " + str(cell_id) + ": " + str(i.keys()))
+            cell_id += 1
+
+    # plot the cells in the FrameConnector dictionaries
+    # each cell is one color, and each time point is a different point marker (up to 5 unique timepoints)
+    # input - array_num - if the cell dictionaries contain multiple values, user can input the desired one
+    # output - plot of the cells in the FrameConnector dictionaries
+    def plot_cells(self, array_num=None):
+        time_marker = [',', '+', '.', 'o', '*']
+
+        # for each cell in the cell dictionary list
+        for i in range(len(self.cell_dict_list)):
+            c = np.random.rand(3,)
+            j = 0
+
+            # for each frame the cell is in
+            for frame, coords in self.cell_dict_list[i].items():
+                print(c)
+                print(coords[0])
+                if array_num:
+                    coords_arr = np.array(coords[array_num])
+                else:
+                    coords_arr = np.array(coords)
+                x, y = coords_arr.T
+                plt.scatter(x, y, color=c, marker=time_marker[j], s=1)
+                j += 1
+
+                if j > 4:   # reset time marker used for points
+                    j = 0
+
+
+        plt.show()
+        plt.cla()
 
 # unit testing
 if __name__ == "__main__":
@@ -135,3 +175,9 @@ if __name__ == "__main__":
 
     print("\nTest retrieving coordinates of an invalid frame (test_frame_iv):")
     print(frame_connector.get_cells_in_frame("test_frame_iv"))
+
+    print("\nSimple FrameConnector print:")
+    print(frame_connector.print_FC_simple())
+
+    print("Plot cells on graph:")
+    print(frame_connector.plot_cells())

@@ -20,6 +20,7 @@ import math
 def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=False):
 
     # set speed out output video
+    # to freeze at first frame, set speed to 0 (can move through frames by pressing space)
     # note: this is only relevant for videos with few trackers - speed decreases as more trackers are added
     s = 1
 
@@ -83,7 +84,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         center_coords_list.append(temp_list)
 
     # start tracking frame-by-frame
-    for i in range(0, frame_num - 1):
+    for i in range(frame_num - 1):
         ret, frame = video.read()
         if not ret:     # error with video reading
             print("Video could not be read to tracker.")
@@ -104,8 +105,8 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                 p1 = (int(bbox[0]), int(bbox[1]))                           # upper left side of bounding box
                 p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))       # lower right side
 
-                # remove trackers that have jumped to a different cell
-                # remove trackers that have too much purple
+                # TODO: remove trackers that have jumped to a different cell
+                # TODO: remove trackers that have too much purple
 
 
                 # check if any part of the bounding box has exited frame or user-selected ROI
@@ -123,7 +124,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                     tracker_center = (math.ceil(0.5*int(p1[0]) + 0.5*int(p2[0])), math.ceil(0.5*int(p1[1]) + 0.5*int(p2[1])))
                     center_coords_list[j].append(tracker_center)
 
-            # display the user-selected ROI
+            # if desired, display the user-selected ROI
             if set_bounds:
                 cv2.rectangle(frame, embryo_bounds, (0, 150, 0), 2, 1)  # green box
 
@@ -142,6 +143,8 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         k = cv2.waitKey(s) & 0xff
         if k == 27:     # if 'ESC' is pressed
             break
+        if k == 49:
+            continue
 
     video.release()
     output.release()

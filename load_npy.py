@@ -46,7 +46,8 @@ def load(file_name, png_generated=False):
     size = (max_x, max_y)
 
     # get name of file without file type
-    short_fn = file_name.split(sep=".")[1]
+    temp = file_name.split(sep="\\")[1]
+    short_fn = temp.split(sep=".")[0]
 
     # create data structure of cell temp_ids and the coordinates of the cell outlines
     cpframe = create_cpframe(outlines, size, short_fn)

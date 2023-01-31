@@ -183,3 +183,6 @@ if __name__ == "__main__":
     print("Note: (0, 0) is at the top right")
     print(cpframe.get_cell_min_max())
 
+    print("\nGet frame ID:")
+    print(cpframe.get_frame_id())
+

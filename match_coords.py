@@ -48,6 +48,9 @@ def match(cpframe_list, frame_connector, coords_list):
                 else:
                     go_tracker_order[j] = -1
                 j += 1
+        else:
+            for k in range(len(coords_list)):
+                go_tracker_order[k] = k
 
 
             # don't need to add cells to FrameConnector because this CPFrame has already been added during
@@ -59,7 +62,7 @@ def match(cpframe_list, frame_connector, coords_list):
 
             if i > len(track) - 1:   # if tracker was aborted before this frame
                 continue
-            elif go_tracker_order[k] == -1:     # if tracker is not tracking a cell
+            elif go_tracker_order[k] == -1 or go_tracker_order[k] == -2:     # if tracker is not tracking a cell
                 continue
 
             # match tracker center coordinate to cell in CPFrame
@@ -75,8 +78,11 @@ def match(cpframe_list, frame_connector, coords_list):
             # cell coordinate data stored in structure [[center coordinate], [cell coordinate 0, ..., n]]
             center_coord = tracker_center_list[k]
             coords_data = [center_coord, cell_coords]  # list of [[center coordinate], [cell coordinate 0, ..., n]]
+            frame_id = str(cpframe_list[i].get_frame_id())
 
             if frame_connector.is_empty():  # this is the first frame in the first video
-                frame_connector.add_frame(k, cpframe_list[i].get_frame_id, coords_data)
+                frame_connector.add_frame(k, frame_id, coords_data)
             else:
-                frame_connector.add_frame(go_tracker_order[k], cpframe_list[i].get_frame_id, coords_data)
+                frame_connector.add_frame(go_tracker_order[k], frame_id, coords_data)
+
+            k += 1
