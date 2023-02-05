@@ -4,9 +4,6 @@
 # Matches the cells tracked by each tracker to their global ID and puts their coordinates in a global FrameConnector
 # data structure
 
-import FrameConnector
-import CPFrame
-
 # matches the cells tracked by each tracker to their global_id and adds them to the FrameConnector
 # inputs: cpframe_list - list of the CPFrame data structures extracted from the .npy images
 #         frame_connector - initialized FrameConnector object, can be empty or can contain information
@@ -23,7 +20,9 @@ def match(cpframe_list, frame_connector, coords_list):
         # get list of all center cell coordinates during the current CPFrame
         tracker_center_list = []  # the center coordinate for each tracker in the current frame
         for track in coords_list:
-            if i < len(track):
+            if not track:
+                continue
+            elif i < len(track):
                 tracker_center_list.append(track[i])
 
         go_tracker_order = [-2 for x in range(len(coords_list))]  # the tracker's cell's global_id, in order of the trackers in this cp_frame
@@ -60,7 +59,9 @@ def match(cpframe_list, frame_connector, coords_list):
         k = 0       # tracker count
         for track in coords_list:
 
-            if i > len(track) - 1:   # if tracker was aborted before this frame
+            if not track:   # if tracker was aborted
+                continue
+            elif i > len(track) - 1:   # if tracker was aborted before this frame
                 continue
             elif go_tracker_order[k] == -1 or go_tracker_order[k] == -2:     # if tracker is not tracking a cell
                 continue

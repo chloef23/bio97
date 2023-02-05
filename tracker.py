@@ -6,6 +6,7 @@
 import cv2
 import os
 import math
+import numpy as np
 
 # sets automatics bounding boxes, tracks the cells contained within the bounding boxes during the video
 # inputs: video_file_path - the PATH to the .mp4 video
@@ -19,7 +20,7 @@ import math
 
 def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=False):
 
-    # set speed out output video
+    # set speed of tracking video
     # to freeze at first frame, set speed to 0 (can move through frames by pressing space)
     # note: this is only relevant for videos with few trackers - speed decreases as more trackers are added
     s = 1
@@ -61,8 +62,14 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
 
     multi_tracker = []    # list of all the trackers
 
+    count = 0
     # select the bounding boxes in the first frame of the video
     for cell in init_cpframe.get_cell_min_max():
+
+        # if count > 6:
+        #     count += 1
+        #     continue
+
         x1 = cell[0][0]
         y1 = cell[0][1]
         x2 = cell[1][0]
@@ -75,6 +82,10 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         temp_tracker = create_tracker(tracker_type)
         temp_tracker.init(frame, bbox)
         multi_tracker.append(temp_tracker)
+
+        count += 1
+
+    fps = 0
 
     # create list of lists containing the center coordinate information of each tracker for each frame in the video
     # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
@@ -94,7 +105,13 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
 
         # multi_tracker cycles through every tracker and updates each tracker individually
         j = 0
+
         for tracker in multi_tracker:
+
+            if not tracker:
+                j += 1
+                continue
+
             ret, bbox = tracker.update(frame)   # update individual cell tracker
             fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)     # calculate FPS
 
@@ -108,16 +125,21 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                 # TODO: remove trackers that have jumped to a different cell
                 # TODO: remove trackers that have too much purple
 
-
                 # check if any part of the bounding box has exited frame or user-selected ROI
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)     # red box
-                    multi_tracker.remove(tracker)      # remove tracker from list to be updated next frame
+                    multi_tracker[j] = None      # remove tracker from list to be updated next frame
+                    center_coords_list[j] = None    # remove coordinates
+
+                # if user has set boundaries, check that inside boundaries
                 elif set_bounds and not init_cpframe.check_boundaries(p1, p2):
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)
-                    multi_tracker.remove(tracker)
+                    multi_tracker[j] = None    # red box
+                    center_coords_list[j] = None
+
                 else:
                     cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)     # blue box
+                    # cv2.rectangle(frame, p1, p2, tuple(color_list[j]), 2, 1)  # multi-colored boxes
 
                     # update cell information in CPFrame based on new tracker location
                     # tracker_center is the integer center (rounded up) coordinate of the tracking box
@@ -143,7 +165,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         k = cv2.waitKey(s) & 0xff
         if k == 27:     # if 'ESC' is pressed
             break
-        if k == 49:
+        if k == 49:     # if 'SPACE' is pressed
             continue
 
     video.release()

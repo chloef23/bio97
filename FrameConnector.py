@@ -5,6 +5,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 class FrameConnector:
 
@@ -109,7 +110,7 @@ class FrameConnector:
     # input - array_num - if the cell dictionaries contain multiple values, user can input the desired one
     # output - plot of the cells in the FrameConnector dictionaries
     def plot_cells(self, array_num=None):
-        time_marker = [',', '+', '.', 'o', '*']
+        # time_marker = [',', '+', '.', 'o', '*']
 
         # for each cell in the cell dictionary list
         for i in range(len(self.cell_dict_list)):
@@ -118,14 +119,12 @@ class FrameConnector:
 
             # for each frame the cell is in
             for frame, coords in self.cell_dict_list[i].items():
-                print(c)
-                print(coords[0])
                 if array_num:
                     coords_arr = np.array(coords[array_num])
                 else:
                     coords_arr = np.array(coords)
                 x, y = coords_arr.T
-                plt.scatter(x, y, color=c, marker=time_marker[j], s=1)
+                plt.scatter(x, y, color=c, s=1) # marker=time_marker[j], s=1)
                 j += 1
 
                 if j > 4:   # reset time marker used for points
@@ -134,6 +133,43 @@ class FrameConnector:
 
         plt.show()
         plt.cla()
+
+    # transforms the FrameConnector data to a uint8 image stacks for individual cells
+    # each file is a one-dimensional image sequence: z first, t next
+    # inputs: dest_folder - PATH to destination folder for uint8 images, recommended that it is empty
+    #         size - [w, h] size of the desired images (recommended that this is the size of the original images)
+    #         array_num - if the cell dictionaries contain multiple values, user can input the desired one
+    # output: number of cells * z * t uint8 images with the cell in white and the background in black
+    #
+    # code modified from code written by Joe Kington at https://stackoverflow.com/questions/19673619/save-raw-data-as-tif
+    def FC_to_image(self, dest_folder, size, array_num=None):
+
+        if not os.path.exists(dest_folder):
+            os.makedirs(dest_folder)
+
+        dpi = 80  # arbitrary - the number of pixels in the image will always be identical
+
+        width, height = size[0]/dpi, size[1]/dpi
+
+        for i in range(len(self.cell_dict_list)):
+            for frame, coords in self.cell_dict_list[i].items():
+                if array_num:
+                    coords_arr = np.array(coords[array_num])
+                else:
+                    coords_arr = np.array(coords)
+
+                fig = plt.figure(figsize=(width, height), dpi=dpi)
+                ax = fig.add_axes([0, 0, 1, 1])
+                ax.axis('off')
+
+                ax.imshow(coords_arr, interpolation='none')
+                plt.show()
+
+                fig_name = dest_folder + "/cell_" + str(i) + "_frame_" + str(frame) + ".tif"
+                fig.savefig(fig_name, dpi=dpi)
+
+                plt.cla()
+                plt.close(fig)
 
 # unit testing
 if __name__ == "__main__":
