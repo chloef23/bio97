@@ -50,8 +50,6 @@ def match(cpframe_list, frame_connector, coords_list):
         else:
             for k in range(len(coords_list)):
                 go_tracker_order[k] = k
-
-
             # don't need to add cells to FrameConnector because this CPFrame has already been added during
             # the t (z-constant) video
 
@@ -59,7 +57,7 @@ def match(cpframe_list, frame_connector, coords_list):
         k = 0       # tracker count
         for track in coords_list:
 
-            if not track:   # if tracker was aborted
+            if not track:
                 continue
             elif i > len(track) - 1:   # if tracker was aborted before this frame
                 continue

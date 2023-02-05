@@ -6,24 +6,25 @@
 import cv2
 import os
 import math
-import numpy as np
+import tracker_ds
 
 # sets automatics bounding boxes, tracks the cells contained within the bounding boxes during the video
 # inputs: video_file_path - the PATH to the .mp4 video
 #         frame_num - the number of frames the video has
 #         tracker_type - cv2 tracker algorithm to use, "TrackerCSRT" is recommended
 #         cpframe_list - the initialized CPFrame object for the first frame of the video
+#         jump_limit - how far the tracker is allowed to move between frames
 #         set_bounds - whether the user will be prompted to manually set the bounds of the embryo, defaults to False
 # output: center_coords_list - list of lists containing the center coordinate information of each tracker for each
 #         frame in the video, in form:
 #        [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
 
-def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=False):
+def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, set_bounds=False):
 
     # set speed of tracking video
     # to freeze at first frame, set speed to 0 (can move through frames by pressing space)
     # note: this is only relevant for videos with few trackers - speed decreases as more trackers are added
-    s = 1
+    s = 0
 
     # check that video exists and is in mp4 format
     if not os.path.exists(video_file_path):
@@ -79,20 +80,15 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         # uncomment below for manual selection of cells
         # bbox = cv2.selectROI(frame, False)
 
+        # create new tracker
         temp_tracker = create_tracker(tracker_type)
         temp_tracker.init(frame, bbox)
-        multi_tracker.append(temp_tracker)
+        temp_tracker_ds = tracker_ds.TrackerDs(temp_tracker)
+        multi_tracker.append(temp_tracker_ds)
 
         count += 1
 
     fps = 0
-
-    # create list of lists containing the center coordinate information of each tracker for each frame in the video
-    # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
-    center_coords_list = []
-    for tracker in multi_tracker:
-        temp_list = []
-        center_coords_list.append(temp_list)
 
     # start tracking frame-by-frame
     for i in range(frame_num - 1):
@@ -104,15 +100,12 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
         timer = cv2.getTickCount()      # for calculation of frames per second
 
         # multi_tracker cycles through every tracker and updates each tracker individually
-        j = 0
-
         for tracker in multi_tracker:
 
-            if not tracker:
-                j += 1
+            if tracker.removed():     # tracker has been removed from frame
                 continue
 
-            ret, bbox = tracker.update(frame)   # update individual cell tracker
+            ret, bbox = tracker.tracker.update(frame)   # update individual cell tracker
             fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)     # calculate FPS
 
             # update displayed bounding box for next frame or remove tracker if bounding box is out of frame/ROI
@@ -122,35 +115,44 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, set_bounds=Fal
                 p1 = (int(bbox[0]), int(bbox[1]))                           # upper left side of bounding box
                 p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))       # lower right side
 
+                # update cell information in CPFrame based on new tracker location
+                # tracker_center is the integer center (rounded up) coordinate of the tracking box
+                tracker_center = (math.ceil(0.5 * int(p1[0]) + 0.5 * int(p2[0])), math.ceil(0.5 * int(p1[1]) + 0.5 * int(p2[1])))
+                tracker.add_coord(tracker_center)
+
                 # TODO: remove trackers that have jumped to a different cell
                 # TODO: remove trackers that have too much purple
 
                 # check if any part of the bounding box has exited frame or user-selected ROI
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)     # red box
-                    multi_tracker[j] = None      # remove tracker from list to be updated next frame
-                    center_coords_list[j] = None    # remove coordinates
+                    tracker.set_removed(True)   # remove tracker from list to be updated next frame
 
                 # if user has set boundaries, check that inside boundaries
                 elif set_bounds and not init_cpframe.check_boundaries(p1, p2):
-                    cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)
-                    multi_tracker[j] = None    # red box
-                    center_coords_list[j] = None
+                    cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)     # red box
+                    tracker.set_removed(True)
+
+                # check if tracker has jumped too far between frames
+                elif tracker.check_jump(jump_limit, tracker_center):
+                    cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)  # red box
+                    tracker.set_removed(True)
 
                 else:
-                    cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)     # blue box
-                    # cv2.rectangle(frame, p1, p2, tuple(color_list[j]), 2, 1)  # multi-colored boxes
-
-                    # update cell information in CPFrame based on new tracker location
-                    # tracker_center is the integer center (rounded up) coordinate of the tracking box
-                    tracker_center = (math.ceil(0.5*int(p1[0]) + 0.5*int(p2[0])), math.ceil(0.5*int(p1[1]) + 0.5*int(p2[1])))
-                    center_coords_list[j].append(tracker_center)
+                    color = tracker.get_color()
+                    # cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)     # blue box
+                    cv2.rectangle(frame, p1, p2, color, 2, 1)  # multi-colored boxes
 
             # if desired, display the user-selected ROI
             if set_bounds:
                 cv2.rectangle(frame, embryo_bounds, (0, 150, 0), 2, 1)  # green box
 
-            j += 1
+        # create list of lists containing the center coordinate information of each tracker for each frame in the video
+        # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
+        center_coords_list = []
+        for tracker in multi_tracker:
+            temp_list = tracker.get_coords()
+            center_coords_list.append(temp_list)
 
         # print frames per second on the tracking window
         if fps < 1:
