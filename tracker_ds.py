@@ -24,15 +24,19 @@ class TrackerDs:
 
     # checks if the tracker has moved too far from the previous frame using the Euclidean distance formula
     # inputs: jump_limit - how far the tracker is allowed to move between frames
-    #         center_coord - the current center coord of the tracker, before it's been added to the self.coords list
-    # output - boolean: True if tracker has moved more than the jump limit, false if not
-    def check_jump(self, jump_limit, center_coord):
-        x2 = center_coord[0]
-        y2 = center_coord[1]
-        x1 = self.coords[-1][0]     # last item in list, x coord
-        y1 = self.coords[-1][1]     # last item in list, y coord
+    # output: boolean - True if tracker has moved more than the jump limit, false if not
+    def check_jump(self, jump_limit):
+
+        if len(self.coords) < 2:
+            return False
+
+        x2 = self.coords[-2][0]     # second-to-last item in list (last coordinate)
+        y2 = self.coords[-2][1]
+        x1 = self.coords[-1][0]     # last item in list (cuurent coordiante)
+        y1 = self.coords[-1][1]
 
         distance = math.sqrt(math.pow(x2 - x1, 2) + pow(y2 - y1, 2))
+        print(distance)
 
         if distance > jump_limit:
             return True

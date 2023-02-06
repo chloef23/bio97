@@ -24,7 +24,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
     # set speed of tracking video
     # to freeze at first frame, set speed to 0 (can move through frames by pressing space)
     # note: this is only relevant for videos with few trackers - speed decreases as more trackers are added
-    s = 0
+    s = 1
 
     # check that video exists and is in mp4 format
     if not os.path.exists(video_file_path):
@@ -134,7 +134,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
                     tracker.set_removed(True)
 
                 # check if tracker has jumped too far between frames
-                elif tracker.check_jump(jump_limit, tracker_center):
+                elif tracker.check_jump(jump_limit):
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)  # red box
                     tracker.set_removed(True)
 
