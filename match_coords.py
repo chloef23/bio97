@@ -4,6 +4,9 @@
 # Matches the cells tracked by each tracker to their global ID and puts their coordinates in a global FrameConnector
 # data structure
 
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 # matches the cells tracked by each tracker to their global_id and adds them to the FrameConnector
 # inputs: cpframe_list - list of the CPFrame data structures extracted from the .npy images
 #         frame_connector - initialized FrameConnector object, can be empty or can contain information
@@ -12,6 +15,9 @@
 #                       [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
 # output: None
 def match(cpframe_list, frame_connector, coords_list):
+
+    go_tracker_order = [-2 for x in range(len(coords_list))]  # the tracker's cell's global_id, in order of the trackers in this cp_frame
+                                                              # fill list with -2 to indicate empty cell
 
     # match each coordinate in the coordinate list to a cell in the given frame of the video
     for i in range(len(cpframe_list)):
@@ -22,10 +28,8 @@ def match(cpframe_list, frame_connector, coords_list):
         for track in coords_list:
             if not track:
                 continue
-            elif i < len(track):
+            elif i < len(track):        # OJO: changed from -1
                 tracker_center_list.append(track[i])
-
-        go_tracker_order = [-2 for x in range(len(coords_list))]  # the tracker's cell's global_id, in order of the trackers in this cp_frame
 
         # for first frame in a t-constant (z) video, need to match trackers to cell global_ids
         if not frame_connector.is_empty() and i == 0:  # first frame in t-constant video
@@ -47,17 +51,24 @@ def match(cpframe_list, frame_connector, coords_list):
                 else:
                     go_tracker_order[j] = -1
                 j += 1
-        else:
+        elif frame_connector.is_empty and i == 0:
             for k in range(len(coords_list)):
                 go_tracker_order[k] = k
             # don't need to add cells to FrameConnector because this CPFrame has already been added during
             # the t (z-constant) video
 
         # match trackers to global cell_ids and add them to the FrameConnector
-        k = 0       # tracker count
-        for track in coords_list:
+        print("tracker list len " + str(len(tracker_center_list)))
+        print(coords_list)
+        print("coords list len " + str(len(coords_list)))
+        for k in range(len(coords_list)):
+            print("k " + str(k))
+            track = coords_list[k]
+            print("track len " + str(len(track)))
 
-            if not track:
+            if len(tracker_center_list) == 0:
+                continue
+            if not track:   # tracker slot is empty
                 continue
             elif i > len(track) - 1:   # if tracker was aborted before this frame
                 continue
@@ -66,6 +77,8 @@ def match(cpframe_list, frame_connector, coords_list):
 
             # match tracker center coordinate to cell in CPFrame
             cell_id = cpframe_list[i].get_cell_from_coord(track[i])  # get the temp_id of the cell at that coordinate
+            # print("local id " + str(cell_id))
+            # print("center coord " + str(track[i]))
 
             if cell_id == -1:  # if tracker not tracking a cell
                 continue
@@ -80,8 +93,9 @@ def match(cpframe_list, frame_connector, coords_list):
             frame_id = str(cpframe_list[i].get_frame_id())
 
             if frame_connector.is_empty():  # this is the first frame in the first video
+                # print("global id " + str(k))
                 frame_connector.add_frame(k, frame_id, coords_data)
             else:
+                # print("calc global id " + str(go_tracker_order[k]))
                 frame_connector.add_frame(go_tracker_order[k], frame_id, coords_data)
 
-            k += 1

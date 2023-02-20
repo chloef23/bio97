@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 
-class TrackerDs:
+class TrackerDS:
 
     # input: tracker - an initialized cv2 tracker
     # color - the random RGB color tuple associated with the tracker, for visualizing on the tracking video
@@ -36,7 +36,7 @@ class TrackerDs:
         y1 = self.coords[-1][1]
 
         distance = math.sqrt(math.pow(x2 - x1, 2) + pow(y2 - y1, 2))
-        print(distance)
+        # print(distance)
 
         if distance > jump_limit:
             return True
@@ -47,6 +47,7 @@ class TrackerDs:
     # input: coordinate, tuple or list
     def add_coord(self, coord):
         self.coords.append(coord)
+        print(self.coords)
 
     # removes the last coord from the self.coords list
     def remove_last_coord(self):
@@ -70,7 +71,13 @@ class TrackerDs:
 
     # allows the user to set self.removed, sets self.coords equal to None
     # input: bool - True or False
-    def set_removed(self, bool):
+    #        keep - defaults to False, deletes the data in self.coords unless set to True
+    #               if set to True, deletes the last coordinate in self.coords
+    def set_removed(self, bool, keep=False):
         self.removed_bool = bool
-        self.coords = None
+        if not keep:
+            self.coords = None
+        else:
+            self.coords.pop()
+            self.coords.append(None)
 

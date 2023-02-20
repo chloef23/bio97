@@ -6,7 +6,7 @@
 import cv2
 import os
 import math
-import tracker_ds
+import TrackerDS
 
 # sets automatics bounding boxes, tracks the cells contained within the bounding boxes during the video
 # inputs: video_file_path - the PATH to the .mp4 video
@@ -67,7 +67,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
     # select the bounding boxes in the first frame of the video
     for cell in init_cpframe.get_cell_min_max():
 
-        # if count > 6:
+        # if count < 20 or count > 60:
         #     count += 1
         #     continue
 
@@ -83,7 +83,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
         # create new tracker
         temp_tracker = create_tracker(tracker_type)
         temp_tracker.init(frame, bbox)
-        temp_tracker_ds = tracker_ds.TrackerDs(temp_tracker)
+        temp_tracker_ds = TrackerDS.TrackerDS(temp_tracker)
         multi_tracker.append(temp_tracker_ds)
 
         count += 1
@@ -100,9 +100,16 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
         timer = cv2.getTickCount()      # for calculation of frames per second
 
         # multi_tracker cycles through every tracker and updates each tracker individually
-        for tracker in multi_tracker:
+        for i in range(len(multi_tracker)):
+            tracker = multi_tracker[i]
 
-            if tracker.removed():     # tracker has been removed from frame
+            if not multi_tracker[i]:
+                continue
+            elif tracker.removed() and not tracker.get_coords():     # tracker has been removed from video
+                continue
+            elif tracker.removed():     # tracker has been terminated but data is kept
+                tracker.add_coord(None)
+                print("yes")
                 continue
 
             ret, bbox = tracker.tracker.update(frame)   # update individual cell tracker
@@ -136,7 +143,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
                 # check if tracker has jumped too far between frames
                 elif tracker.check_jump(jump_limit):
                     cv2.rectangle(frame, p1, p2, (0, 0, 150), 2, 1)  # red box
-                    tracker.set_removed(True)
+                    tracker.set_removed(True, keep=True)
 
                 else:
                     color = tracker.get_color()
@@ -150,7 +157,15 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
         # create list of lists containing the center coordinate information of each tracker for each frame in the video
         # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
         center_coords_list = []
-        for tracker in multi_tracker:
+        for i in range(len(multi_tracker)):
+            tracker = multi_tracker[i]
+
+            if not multi_tracker[i]:
+                continue
+            elif tracker.removed():  # tracker has been removed from frame
+                                     # TODO: not adding removed trackers that have info
+                continue
+
             temp_list = tracker.get_coords()
             center_coords_list.append(temp_list)
 

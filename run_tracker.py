@@ -65,15 +65,51 @@ def run_tracker(image_list, tracker_type, frame_connector, jump_limit, coords_li
     return frame_connector
 
 
+# cycle through FrameConnector and print csv containing columns: cell (starting from 1), x coordinate, y coordinate,
+# z oordinate (starting from 1), and frame number (time, starting from 1)
+# inputs: frame_connector - filled frame connector
+#         file_path - path to the folder the file will be created in
+# output: csv containing information retrieved from FrameConnector
+def format_output(frame_connector, file_path, z_max, t_max):
+    if frame_connector.is_empty:
+        print("Error: FrameConnector is empty")
+        return -1
+    elif not os.path.exists(file_path) or not os.path.isdir(file_path):
+        print("Error: could not find folder")
+        return -1
+
+    file_loc = file_path + "/cptracker_output.csv"
+    fp = open(file_loc, "w")
+
+    if not fp:
+        print("Error: could not create file in folder given")
+        return -1
+
+    # cycle through FrameConnector and retrieve information
+    for i in range(len(frame_connector)):  # for each cell
+        cell_dict = frame_connector.retrieve_frame_info(i)
+
+        for j in range(t_max + 1):  # for each frame (timepoint) the cell is in
+            for k in range(z_max + 1):  # for each z layer in the timepoint
+                # TODO: get from frame name
+                for n in cell_dict:
+                    temp_string = str(i + 1) + "," + str(n[0]) + "," + str(n[1]) + "," + str(k + 1) + "," + str(j + 1)
+                    fp.write(temp_string)
+
+    fp.close()
+
+    return 0
+
+
 # unit test
 if __name__ == "__main__":
     import os
     import FrameConnector
 
-    FOLDER_NAME = "t_test_short"  # name of the folder where .npy files are stored
+    FOLDER_NAME = "z_tracking_test_0"  # name of the folder where .npy files are stored
     VIDEO_FPS = 4
     TRACKER_TYPE = "TrackerCSRT"
-    JUMP_LIMIT = 4
+    JUMP_LIMIT = 10
 
     verbose = False     # when verbose == True, files that are unable to load will print error statements
 
@@ -96,9 +132,6 @@ if __name__ == "__main__":
                                   coords_list=None, video_fps=VIDEO_FPS, overwrite_image=False)
 
     frame_connector.plot_cells(array_num=1)
-    frame_connector.print_FC()
+    # frame_connector.print_FC()
 
-    # create uint8 images from the FrameConnector data
-    # dest_folder = "super_mini_test/uint8_images"
-    # size = [780, 130]
-    # frame_connector.FC_to_image(dest_folder, size, array_num=1)
+    # format_output(frame_connector, FOLDER_NAME, 16, 0)
