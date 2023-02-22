@@ -32,7 +32,8 @@ class CPFrame:
                 x, y = self.outlines_list[i][j]
                 ret_array[x, y] = i
 
-        ret_array = self.check_within_cell(ret_array)
+        # uncomment to return cells that are completely filled in -- note, program will be considerably slower
+        # ret_array = self.assign_pix_to_cells(ret_array)
 
         return ret_array
 
@@ -41,7 +42,7 @@ class CPFrame:
     # input: outlines_array - 2D array containing pixels containing the outlines of cells marked by the cell_id (an
     #                         integer 0 to n) and pixels not containing any outline with -1
     # output 2D array where all pixels contained within a cell are marked by the cell_id
-    def check_within_cell(self, outlines_array):
+    def assign_pix_to_cells(self, outlines_array):
         k = 0
         min_max = self.get_cell_min_max()
         for cell in self.outlines_list:
@@ -56,6 +57,10 @@ class CPFrame:
             k += 1
         return outlines_array
 
+
+    # returns the list of coordinates contained within each cell outline
+    def get_outlines_list(self):
+        return self.outlines_list
 
     # returns the list of coordinates associated with a temp_id
     # input: temp_id - the temp_id of the cell

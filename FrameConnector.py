@@ -21,7 +21,7 @@ class FrameConnector:
     # input: cell_id - the global cell id, must be an integer >= 0
     #        frame_id - the ID of the video frame, recommended that it is in form zx_tx
     #        coords - list of the coordinates of the cells in the frame
-    def add_frame(self, cell_id, frame_id, coords):
+    def add_cell(self, cell_id, frame_id, coords):
         if cell_id > (len(self.cell_dict_list) - 1):  # if global cell_id not already in dictionary
             temp_dict = {}
             temp_dict[frame_id] = coords
@@ -110,12 +110,10 @@ class FrameConnector:
     # input - array_num - if the cell dictionaries contain multiple values, user can input the desired one
     # output - plot of the cells in the FrameConnector dictionaries
     def plot_cells(self, array_num=None):
-        # time_marker = [',', '+', '.', 'o', '*']
 
         # for each cell in the cell dictionary list
         for i in range(len(self.cell_dict_list)):
             c = np.random.rand(3,)
-            j = 0
 
             # for each frame the cell is in
             for frame, coords in self.cell_dict_list[i].items():
@@ -124,11 +122,7 @@ class FrameConnector:
                 else:
                     coords_arr = np.array(coords)
                 x, y = coords_arr.T
-                plt.scatter(x, y, color=c, s=1) # marker=time_marker[j], s=1)
-                j += 1
-
-                if j > 4:   # reset time marker used for points
-                    j = 0
+                plt.scatter(x, y, color=c, s=1)
 
 
         plt.show()

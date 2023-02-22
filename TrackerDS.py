@@ -36,7 +36,6 @@ class TrackerDS:
         y1 = self.coords[-1][1]
 
         distance = math.sqrt(math.pow(x2 - x1, 2) + pow(y2 - y1, 2))
-        # print(distance)
 
         if distance > jump_limit:
             return True
@@ -47,7 +46,6 @@ class TrackerDS:
     # input: coordinate, tuple or list
     def add_coord(self, coord):
         self.coords.append(coord)
-        print(self.coords)
 
     # removes the last coord from the self.coords list
     def remove_last_coord(self):

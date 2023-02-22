@@ -106,10 +106,10 @@ if __name__ == "__main__":
     import os
     import FrameConnector
 
-    FOLDER_NAME = "z_tracking_test_0"  # name of the folder where .npy files are stored
+    FOLDER_NAME = "long_test"  # name of the folder where .npy files are stored
     VIDEO_FPS = 4
     TRACKER_TYPE = "TrackerCSRT"
-    JUMP_LIMIT = 10
+    JUMP_LIMIT = 15
 
     verbose = False     # when verbose == True, files that are unable to load will print error statements
 

@@ -109,7 +109,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
                 continue
             elif tracker.removed():     # tracker has been terminated but data is kept
                 tracker.add_coord(None)
-                print("yes")
                 continue
 
             ret, bbox = tracker.tracker.update(frame)   # update individual cell tracker
@@ -126,9 +125,6 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
                 # tracker_center is the integer center (rounded up) coordinate of the tracking box
                 tracker_center = (math.ceil(0.5 * int(p1[0]) + 0.5 * int(p2[0])), math.ceil(0.5 * int(p1[1]) + 0.5 * int(p2[1])))
                 tracker.add_coord(tracker_center)
-
-                # TODO: remove trackers that have jumped to a different cell
-                # TODO: remove trackers that have too much purple
 
                 # check if any part of the bounding box has exited frame or user-selected ROI
                 if p1[0] < 0 or p2[0] > frame_width or p1[1] < 0 or p2[1] > frame_height:
@@ -162,8 +158,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
 
             if not multi_tracker[i]:
                 continue
-            elif tracker.removed():  # tracker has been removed from frame
-                                     # TODO: not adding removed trackers that have info
+            elif tracker.removed() and not tracker.get_coords():  # tracker has been removed from frame
                 continue
 
             temp_list = tracker.get_coords()
