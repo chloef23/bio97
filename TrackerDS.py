@@ -35,7 +35,7 @@ class TrackerDS:
         x1 = self.coords[-1][0]     # last item in list (cuurent coordiante)
         y1 = self.coords[-1][1]
 
-        distance = math.sqrt(math.pow(x2 - x1, 2) + pow(y2 - y1, 2))
+        distance = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
 
         if distance > jump_limit:
             return True

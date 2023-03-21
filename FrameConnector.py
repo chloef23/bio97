@@ -71,8 +71,8 @@ class FrameConnector:
         for cell in self.cell_dict_list:
             if frame_id in cell:
                 coords_list.append(cell[frame_id])
-            else:
-                coords_list.append(-1)
+            # else:
+            #     coords_list.append(-1)
 
         return coords_list
 
