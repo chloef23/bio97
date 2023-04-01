@@ -78,9 +78,15 @@ def main():
         video = vids_list[v]
         if not (i % 2) == 0:     # need to reverse the direction of the upper videos (index 1, 3, etc.)
             video = video[::-1]
-        print("video " + str(video))
+
+        # true if this is the first video
+        if i == 0:
+            first_video_bool = True
+        else:
+            first_video_bool = False
+
         run_tracker.run_tracker(video, TRACKER_TYPE, frame_connector, JUMP_LIMIT, dir_path,
-                               video_fps=VIDEO_FPS, overwrite_image=False)
+                               video_fps=VIDEO_FPS, first_video=first_video_bool, overwrite_image=False)
         i += 1
 
     format_output(frame_connector, dir_path)
@@ -178,6 +184,7 @@ def format_output(frame_connector, file_path):
 
         j = 0
         for key, value in cell_dict.items():    # for each time frame
+            print(key)
             # get z value and frame number from cell dictionary key (originally from filename)
             zt = re.search(r't[0-9]{3}_z[0-9]{3}', key)
             if zt:

@@ -12,8 +12,10 @@ class FrameConnector:
     # cell_dict_list - list of cell dictionaries, dictionaries are of each cell's coordinates, key is frame ID
     #                  note: global cell IDs are assigned from cells present in the first frame of the time
     #                  (z-constant) video
+    # first_vid_list - list of the center coordinates of each cell in the first video
     def __init__(self):
         self.cell_dict_list = []
+        self.first_vid_list = []
 
     # creates a dictionary for each global cell_id if not already created, then adds the cell coordinates to
     # the dictionary with the key as the frame_id
@@ -90,6 +92,18 @@ class FrameConnector:
             return True
         else:
             return False
+
+    # returns the first video cell center list
+    # inputs: None
+    # output: the first video cell center list in form [[cell 0 center coord], [cell 1 center coord] ... ]
+    def get_first_vid_list(self):
+        return self.first_vid_list
+
+    # set the first video cell center list
+    # inputs: first-vid_list - the first video cell center list in form [[cell 0 center coord], [cell 1 center coord] ... ]
+    # output: None
+    def set_first_vid_list(self, first_vid_list):
+        self.first_vid_list = first_vid_list
 
     # prints the FrameConnector dictionaries in a pretty way
     def print_FC(self):

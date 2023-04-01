@@ -151,7 +151,7 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
                 cv2.rectangle(frame, embryo_bounds, (0, 150, 0), 2, 1)  # green box
 
         # create list of lists containing the center coordinate information of each tracker for each frame in the video
-        # [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
+        # [[tracker 1 center_coord center coord, [frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
         center_coords_list = []
         for i in range(len(multi_tracker)):
             tracker = multi_tracker[i]

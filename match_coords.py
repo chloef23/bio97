@@ -3,6 +3,7 @@
 # Bio97 Thesis Project
 # Matches the cells tracked by each tracker to their global ID and puts their coordinates in a global FrameConnector
 # data structure
+import math
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
@@ -27,12 +28,16 @@ def match(cpframe_list, frame_connector, coords_list):
         new_coords_list = []
 
         # match center coordinates of trackers at first frame of first video to trackers in first frame of current video
-        cells_list = frame_connector.get_cells_in_frame(frame_0)[0]
-        for coord in cells_list:
+        first_vid_cells_list = frame_connector.get_first_vid_list()
+
+        for coord in first_vid_cells_list:
             coord = tuple(coord)
-            if coord in center_coords_list:
-                c_index = center_coords_list.index(coord)
-                new_coords_list.append(coords_list[c_index])
+            near_point = near(coord, center_coords_list, 5)     # if point is nearby a point in the list, Euclidean distance 5
+            if near_point:
+                c_index = center_coords_list.index(near_point)      # coord, index of the center coordinate of the tracker in the current video
+                new_coords_list.append(coords_list[c_index])        # coordinates of the cell the tracker is tracking
+            else:
+                new_coords_list.append(None)
 
     # for each frame, match center coordinate of ordered trackers to cell and add to FrameConnector
     for i in range(len(cpframe_list)):
@@ -45,8 +50,9 @@ def match(cpframe_list, frame_connector, coords_list):
             poly_list.append(Polygon(outline))
 
         for j in range(len(new_coords_list)):
-
-            if i >= len(new_coords_list[j]):     # if the tracker terminated before the video completed
+            if new_coords_list[j] is None:      # tracker did not match any cells in the first video
+                continue
+            elif i >= len(new_coords_list[j]):     # if the tracker terminated before the video completed
                 continue
             elif not new_coords_list[j][i]:     # coordinate is None, tracker was aborted before the video completed
                 continue
@@ -78,3 +84,17 @@ def get_cell_containing_point(polygon_list, outline_list, point):
             return outline_list[i]      # return the corresponding list of coordinates
 
     return None
+
+# return True if a point is near (defined by the user) a point in the second list
+# inputs: point -- an (x, y) point
+#         point_list -- second list of points
+#         near_cutoff -- inclusive cutoff for distance between "near" points, Euclidean distance
+# output: the nearby point's coordinates (x, y) if the given point is near a point in the point list, False if not
+def near(point, point_list, near_cutoff):
+
+    point_distance = lambda p1, p2: math.sqrt(math.pow(p2[0] - p1[0], 2) + math.pow(p2[1] - p1[1], 2))  # Euclidean distance
+    for p in point_list:
+        if point_distance(point, p) <= near_cutoff:
+            return p
+
+    return False

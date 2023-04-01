@@ -24,7 +24,7 @@ import match_coords
 #                           .pngs will not be re-generated
 # output: none
 def run_tracker(image_list, tracker_type, frame_connector, jump_limit, folder_name,
-                coords_list=None, video_fps=4, overwrite_image=False):
+                first_video=False, video_fps=4, overwrite_image=False):
 
     # convert all .npy in folder to pngs
     png_list = []
@@ -59,15 +59,22 @@ def run_tracker(image_list, tracker_type, frame_connector, jump_limit, folder_na
     video_file_path = folder_name + "/cell_tracker_video.mp4"
     frames_to_video.write_video(video_file_path, png_list, video_fps)
 
-    if not coords_list:
-        # run the tracker program on the video
-        coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0], jump_limit)
+    # run the tracker program on the video
+    coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0], jump_limit)
+    if first_video:
+        ff_coords_list = [x for x in coords_list if x]         # remove empty lists
+        ff_coords_list = [x[0] for x in ff_coords_list]        # coordinates in the first frame
+        frame_connector.set_first_vid_list(ff_coords_list)
+
 
     # match trackers to cells and add their coordinates to FrameConnector
-    print("Matching trackers...")
+    print("Matching trackers...\n\n")
     match_coords.match(cpframe_list, frame_connector, coords_list)
 
+    # uncomment below for the cell tracker plot to display for each video -- good for checking tracking accuracy
     # frame_connector.plot_cells()
+
+    # frame_connector.print_FC_simple()
 
     return frame_connector
 
