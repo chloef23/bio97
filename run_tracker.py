@@ -4,13 +4,11 @@
 # Runs the cell tracker for one video
 
 # import packages
-import re
-import os
-
 import load_npy
 import frames_to_video
 import tracker
 import match_coords
+import os
 
 # convert a list of .npy images to an .mp4 video, then runs the cell tracker for that video
 # input: image_list - list of all .npy images in the order of the video
@@ -24,7 +22,7 @@ import match_coords
 #                           .pngs will not be re-generated
 # output: none
 def run_tracker(image_list, tracker_type, frame_connector, jump_limit, folder_name,
-                first_video=False, video_fps=4, overwrite_image=False):
+                first_video=False, video_fps=4, overwrite_image=False, rand_num=None):
 
     # convert all .npy in folder to pngs
     png_list = []
@@ -60,7 +58,7 @@ def run_tracker(image_list, tracker_type, frame_connector, jump_limit, folder_na
     frames_to_video.write_video(video_file_path, png_list, video_fps)
 
     # run the tracker program on the video
-    coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0], jump_limit)
+    coords_list = tracker.track(video_file_path, frame_num, tracker_type, cpframe_list[0], jump_limit, rand_num=rand_num)
     if first_video:
         ff_coords_list = [x for x in coords_list if x]         # remove empty lists
         ff_coords_list = [x[0] for x in ff_coords_list]        # coordinates in the first frame
@@ -72,7 +70,7 @@ def run_tracker(image_list, tracker_type, frame_connector, jump_limit, folder_na
     match_coords.match(cpframe_list, frame_connector, coords_list)
 
     # uncomment below for the cell tracker plot to display for each video -- good for checking tracking accuracy
-    # frame_connector.plot_cells()
+    frame_connector.plot_cells()
 
     # frame_connector.print_FC_simple()
 

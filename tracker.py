@@ -7,6 +7,7 @@ import cv2
 import os
 import math
 import TrackerDS
+import numpy as np
 
 # sets automatics bounding boxes, tracks the cells contained within the bounding boxes during the video
 # inputs: video_file_path - the PATH to the .mp4 video
@@ -15,11 +16,12 @@ import TrackerDS
 #         cpframe_list - the initialized CPFrame object for the first frame of the video
 #         jump_limit - how far the tracker is allowed to move between frames
 #         set_bounds - whether the user will be prompted to manually set the bounds of the embryo, defaults to False
+#         rand_num - randomly select user-specified number of cells to track
 # output: center_coords_list - list of lists containing the center coordinate information of each tracker for each
 #         frame in the video, in form:
 #        [[tracker 1 center_coord frame 0, 1, 2, ...], [tracker 2 center_coord frame 0, 1, 2...]. ...]
 
-def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, set_bounds=False):
+def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, set_bounds=False, rand_num=None):
 
     # set speed of tracking video
     # to freeze at first frame, set speed to 0 (can move through frames by pressing space)
@@ -63,9 +65,20 @@ def track(video_file_path, frame_num, tracker_type, init_cpframe, jump_limit, se
 
     multi_tracker = []    # list of all the trackers
 
+    # select given number of random cells to track
+    rand_array = []
+    if rand_num:
+        high = len(init_cpframe.get_cell_min_max())
+        rand_array = np.random.randint(0, high, rand_num)   # create array of random cells to track
+        print(rand_array)
+
     count = 0
     # select the bounding boxes in the first frame of the video
     for cell in init_cpframe.get_cell_min_max():
+
+        if rand_num and (count not in rand_array):
+            count += 1
+            continue
 
         # if count < 20 or count > 60:
         #     count += 1

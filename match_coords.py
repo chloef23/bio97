@@ -4,7 +4,6 @@
 # Matches the cells tracked by each tracker to their global ID and puts their coordinates in a global FrameConnector
 # data structure
 import math
-
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
@@ -32,7 +31,7 @@ def match(cpframe_list, frame_connector, coords_list):
 
         for coord in first_vid_cells_list:
             coord = tuple(coord)
-            near_point = near(coord, center_coords_list, 5)     # if point is nearby a point in the list, Euclidean distance 5
+            near_point = near(coord, center_coords_list, 10)     # if point is nearby a point in the list, Euclidean distance 5
             if near_point:
                 c_index = center_coords_list.index(near_point)      # coord, index of the center coordinate of the tracker in the current video
                 new_coords_list.append(coords_list[c_index])        # coordinates of the cell the tracker is tracking

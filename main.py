@@ -15,14 +15,18 @@ import FrameConnector
 #######################################################################################################################
 
 # user-specified inputs
-FOLDER_NAME = "20230207_0002_npys"     # name of the folder where .npy files are stored
+FOLDER_NAME = "20230324_0010_npys"     # name of the folder where .npy files are stored
+                                       # note: .npys must be named with txxxzxxx where xxx are integers
+                                       # denoting the t and z values (ex. 001, 010, 100)
 VIDEO_FPS = 5    # frames per second desired in mp4 video, cannot be less than 0.01
                  # note: this does not affect the speed of the tracker - that is solely determined by the number of
                  #       items to track
 
 ZVALUE = 16     # the user-selected z-stack value to split each z-stack (t-constant) video at
-TVALUE = [1, 5, 10, 15]        # the user-selected t values to run z-stack (t-constant) video at
-JUMP_LIMIT = 15                 # the user-selected threshold for the maximum distance cells can travel over one frame
+TVALUE = [1, 5, 10, 15, 20, 25, 27]        # the user-selected t values to run z-stack (t-constant) video at
+JUMP_LIMIT = 20                 # the user-selected threshold for the maximum distance cells can travel over one frame
+RANDNUM = None                  # specify a number of cells to be tracked, cells are selected randomly
+                                # set to None for all cells to be tracked
 
 # algorithm used for tracker
 TRACKER_TYPE = "TrackerCSRT"    # recommended algorithm
@@ -44,7 +48,6 @@ def main():
 
     if os.path.exists(dir_path) and os.path.isdir(dir_path):    # if generated folder exists
         print("exists")
-
     else:   # generate CPTracker folder
         os.makedirs(dir_path)
 
@@ -86,7 +89,7 @@ def main():
             first_video_bool = False
 
         run_tracker.run_tracker(video, TRACKER_TYPE, frame_connector, JUMP_LIMIT, dir_path,
-                               video_fps=VIDEO_FPS, first_video=first_video_bool, overwrite_image=False)
+                               video_fps=VIDEO_FPS, first_video=first_video_bool, overwrite_image=False, rand_num=RANDNUM)
         i += 1
 
     format_output(frame_connector, dir_path)
@@ -125,7 +128,7 @@ def generate_video_lists(gen_file_list, zvalue, tvalues, dir_path):
 
     # extract (t) z-constant video file names
     t_list = frame_df.loc[[zvalue]].to_numpy()[0]
-    t_list = list(t_list[~pd.isna(t_list)] ) # remove NaNs and append to video list
+    t_list = list(t_list[~pd.isna(t_list)])  # remove NaNs and append to video list
     if not len(t_list) == 0:
         path_t_list = []
         for i in t_list:
@@ -164,14 +167,14 @@ def format_output(frame_connector, file_path):
         print("Error: FrameConnector is empty")
         return -1
     elif not os.path.exists(file_path) or not os.path.isdir(file_path):
-        print("Error: could not find folder")
+        print("Error: could not find folder " + str(file_path))
         return -1
 
-    file_loc = file_path + "/cptracker_output.csv"
-    fp = open(file_loc, "w")
+    coord_file_loc = file_path + "/cptracker_output.csv"
+    coord_fp = open(coord_file_loc, "w")
 
-    if not fp:
-        print("Error: could not create file in folder given")
+    if not coord_fp:
+        print("Error: could not create file in folder given (" + str(file_path) + ")")
         return -1
 
     # uncomment for headers for the .csv
@@ -184,8 +187,7 @@ def format_output(frame_connector, file_path):
 
         j = 0
         for key, value in cell_dict.items():    # for each time frame
-            print(key)
-            # get z value and frame number from cell dictionary key (originally from filename)
+            # get z value and frame number from cell dictionary key (.npy filename)
             zt = re.search(r't[0-9]{3}_z[0-9]{3}', key)
             if zt:
                 zt = zt.group(0)
@@ -200,9 +202,9 @@ def format_output(frame_connector, file_path):
             for n in value:      # for each coordinate
                 temp_string = str(i + 1) + "," + str(n[0]) + "," + str(n[1]) + "," \
                               + str(z) + "," + str(t) + "\n"
-                fp.write(temp_string)
+                coord_fp.write(temp_string)
 
-    fp.close()
+    coord_fp.close()
 
     return 0
 
