@@ -1,7 +1,3 @@
-Chloe Fugle (chloe.m.fugle.23@dartmouth.edu)  
-10/12/22  
-Bio97 Thesis Project  
-
 ## CPTracker
 Work-in-progress.  
 A cell tracking program that interfaces with [Cellpose](https://github.com/MouseLand/cellpose) .npy output files.  
